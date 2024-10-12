@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/saleh-ghazimoradi/Gophergram/internal/gateway"
 	"github.com/saleh-ghazimoradi/Gophergram/logger"
 	"github.com/spf13/cobra"
 )
@@ -14,6 +15,6 @@ var httpCmd = &cobra.Command{
 	Short: "launching the http rest listen server",
 	Run: func(cmd *cobra.Command, args []string) {
 		logger.Logger.Info("http rest server is starting")
-		http.Start()
+		gateway.Server()
 	},
 }
