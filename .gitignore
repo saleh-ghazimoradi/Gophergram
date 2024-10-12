@@ -20,7 +20,7 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
-
+config.json
 # Go workspace file
 go.work
 
