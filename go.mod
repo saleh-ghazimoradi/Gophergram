@@ -2,11 +2,16 @@ module github.com/saleh-ghazimoradi/Gophergram
 
 go 1.23.2
 
-require github.com/spf13/viper v1.19.0
+require (
+	github.com/spf13/cobra v1.8.1
+	github.com/spf13/viper v1.19.0
+	go.uber.org/zap v1.21.0
+)
 
 require (
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect

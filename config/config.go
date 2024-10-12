@@ -12,7 +12,8 @@ type config struct {
 }
 
 type General struct {
-	Listen string `mapstructure:"listen"`
+	Listen   string `mapstructure:"listen"`
+	LogLevel int8   `mapstructure:"log_level"`
 }
 
 type Database struct{}

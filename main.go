@@ -1,7 +1,7 @@
 package main
 
-import "fmt"
+import "github.com/saleh-ghazimoradi/Gophergram/cmd"
 
 func main() {
-	fmt.Println("This is a hello from D.H")
+	cmd.Execute()
 }
