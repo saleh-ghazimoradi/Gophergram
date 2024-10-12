@@ -19,10 +19,7 @@ var httpCmd = &cobra.Command{
 	Use:   "http",
 	Short: "launching the http rest listen server",
 	Run: func(cmd *cobra.Command, args []string) {
-		logger.Logger.Info("http rest server is starting")
-		if err := gateway.Server(gateway.Routes()); err != nil {
-			logger.Logger.Fatal(err)
-		}
+		logger.Logger.Info("http rest server is starting", config.AppConfig.General.Listen)
 
 		// TODO: Make it more efficient
 		cfg := utils.PostgresConfig{
@@ -37,7 +34,7 @@ var httpCmd = &cobra.Command{
 			MaxIdleTime:  config.AppConfig.Database.Postgresql.MaxIdleTime,
 			Timeout:      config.AppConfig.Database.Postgresql.Timeout,
 		}
-		logger.Logger.Info(cfg.Timeout)
+
 		db, err := utils.PostgresConnection(cfg)
 		if err != nil {
 			logger.Logger.Fatal(err)
@@ -54,5 +51,8 @@ var httpCmd = &cobra.Command{
 
 		fmt.Println(userService, postService)
 
+		if err := gateway.Server(gateway.Routes()); err != nil {
+			logger.Logger.Fatal(err)
+		}
 	},
 }
