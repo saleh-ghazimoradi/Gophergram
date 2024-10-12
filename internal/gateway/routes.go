@@ -1,10 +1,15 @@
 package gateway
 
-import "net/http"
+import (
+	"github.com/justinas/alice"
+	"net/http"
+)
 
-func routes() http.Handler {
+func Routes() http.Handler {
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /", nil)
+	mux.HandleFunc("GET /v1/health", healthCheckHandler)
 
-	return mux
+	standard := alice.New(recoverPanic, logRequest, commonHeaders)
+
+	return standard.Then(mux)
 }

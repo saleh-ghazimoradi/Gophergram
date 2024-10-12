@@ -15,6 +15,8 @@ var httpCmd = &cobra.Command{
 	Short: "launching the http rest listen server",
 	Run: func(cmd *cobra.Command, args []string) {
 		logger.Logger.Info("http rest server is starting")
-		gateway.Server()
+		if err := gateway.Server(gateway.Routes()); err != nil {
+			logger.Logger.Fatal(err)
+		}
 	},
 }
