@@ -9,12 +9,11 @@ import (
 var AppConfig *config
 
 type config struct {
-	General  General  `mapstructure:"general"`
-	Database Database `mapstructure:"database"`
+	General  General  `mapstructure:"general"`  // general configs
+	Database Database `mapstructure:"database"` // databases configs
 }
-
 type General struct {
-	Listen   string `mapstructure:"listen"`
+	Listen   string `mapstructure:"listen"` // rest listen port
 	LogLevel int8   `mapstructure:"log_level"`
 }
 
@@ -23,14 +22,14 @@ type Database struct {
 }
 
 type Postgresql struct {
-	Host         string        `mapstructure:"host"`
-	Port         string        `mapstructure:"port"`
-	User         string        `mapstructure:"user"`
-	Password     string        `mapstructure:"password"`
-	Database     string        `mapstructure:"database"`
-	SSLMode      string        `mapstructure:"ssl_mode"`
-	MaxOpenConns int           `mapstructure:"max_open_conns"`
-	MaxIdleConns int           `mapstructure:"max_idle_conns"`
+	Host         string        `mapstructure:"host"`           // postgres host
+	Port         string        `mapstructure:"port"`           // postgres port
+	User         string        `mapstructure:"user"`           // postgres user
+	Password     string        `mapstructure:"password"`       // postgres pass
+	Database     string        `mapstructure:"database"`       // postgres database // postgres test database
+	SSLMode      string        `mapstructure:"ssl_mode"`       // postgres ssl mode
+	MaxOpenConns int           `mapstructure:"max_open_conns"` // postgres max open connections
+	MaxIdleConns int           `mapstructure:"max_idle_conns"` // postgres max idle connections
 	MaxIdleTime  time.Duration `mapstructure:"max_idle_time"`
 	Timeout      time.Duration `mapstructure:"timeout"`
 }

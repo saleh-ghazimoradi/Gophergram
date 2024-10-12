@@ -50,3 +50,14 @@ func PostgresConnection(cfg PostgresConfig) (*sql.DB, error) {
 
 	return db, nil
 }
+
+func PostgresUrl(host, port, user, pass, database, sslmode string) string {
+	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
+		user,
+		pass,
+		host,
+		port,
+		database,
+		sslmode,
+	)
+}
