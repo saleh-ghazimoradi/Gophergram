@@ -3,12 +3,14 @@ package config
 import (
 	"fmt"
 	"github.com/spf13/viper"
+	"time"
 )
 
 var AppConfig *config
 
 type config struct {
-	General General `mapstructure:"general"`
+	General  General  `mapstructure:"general"`
+	Database Database `mapstructure:"database"`
 }
 
 type General struct {
@@ -16,7 +18,22 @@ type General struct {
 	LogLevel int8   `mapstructure:"log_level"`
 }
 
-type Database struct{}
+type Database struct {
+	Postgresql Postgresql `mapstructure:"postgresql"`
+}
+
+type Postgresql struct {
+	Host         string        `mapstructure:"host"`
+	Port         string        `mapstructure:"port"`
+	User         string        `mapstructure:"user"`
+	Password     string        `mapstructure:"password"`
+	Database     string        `mapstructure:"database"`
+	SSLMode      string        `mapstructure:"ssl_mode"`
+	MaxOpenConns int           `mapstructure:"max_open_conns"`
+	MaxIdleConns int           `mapstructure:"max_idle_conns"`
+	MaxIdleTime  time.Duration `mapstructure:"max_idle_time"`
+	Timeout      time.Duration `mapstructure:"timeout"`
+}
 
 func LoadConfig(path string) {
 	viper.SetConfigName("config") // name of config file (without extension)

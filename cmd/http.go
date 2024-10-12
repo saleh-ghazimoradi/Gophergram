@@ -1,8 +1,13 @@
 package cmd
 
 import (
+	"fmt"
+	"github.com/saleh-ghazimoradi/Gophergram/config"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/gateway"
+	"github.com/saleh-ghazimoradi/Gophergram/internal/repository"
+	"github.com/saleh-ghazimoradi/Gophergram/internal/service"
 	"github.com/saleh-ghazimoradi/Gophergram/logger"
+	"github.com/saleh-ghazimoradi/Gophergram/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -18,5 +23,36 @@ var httpCmd = &cobra.Command{
 		if err := gateway.Server(gateway.Routes()); err != nil {
 			logger.Logger.Fatal(err)
 		}
+
+		// TODO: Make it more efficient
+		cfg := utils.PostgresConfig{
+			Host:         config.AppConfig.Database.Postgresql.Host,
+			Port:         config.AppConfig.Database.Postgresql.Port,
+			User:         config.AppConfig.Database.Postgresql.User,
+			Password:     config.AppConfig.Database.Postgresql.Password,
+			Database:     config.AppConfig.Database.Postgresql.Database,
+			SSLMode:      config.AppConfig.Database.Postgresql.SSLMode,
+			MaxOpenConns: config.AppConfig.Database.Postgresql.MaxOpenConns,
+			MaxIdleConns: config.AppConfig.Database.Postgresql.MaxIdleConns,
+			MaxIdleTime:  config.AppConfig.Database.Postgresql.MaxIdleTime,
+			Timeout:      config.AppConfig.Database.Postgresql.Timeout,
+		}
+		logger.Logger.Info(cfg.Timeout)
+		db, err := utils.PostgresConnection(cfg)
+		if err != nil {
+			logger.Logger.Fatal(err)
+		}
+		defer db.Close()
+
+		logger.Logger.Info("database connection pool established")
+
+		userDB := repository.NewUserRepository(db)
+		postDB := repository.NewPostRepository(db)
+
+		userService := service.NewServiceUser(userDB)
+		postService := service.NewPostService(postDB)
+
+		fmt.Println(userService, postService)
+
 	},
 }
