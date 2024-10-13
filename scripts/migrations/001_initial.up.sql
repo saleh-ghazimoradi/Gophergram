@@ -23,3 +23,11 @@ ALTER TABLE public.posts ADD CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES
 -- Add new columns to the posts table
 ALTER TABLE public.posts ADD COLUMN tags VARCHAR(100) [];  -- Array of tags
 ALTER TABLE public.posts ADD COLUMN updated_at timestamp(0) with time zone NOT NULL DEFAULT NOW();  -- Timestamp for the last update
+
+CREATE TABLE IF NOT EXISTS public.comments(
+    id bigserial PRIMARY KEY,
+    post_id bigserial NOT NULL,
+    user_id bigserial NOT NULL,
+    content TEXT NOT NULL,
+    created_at timestamp(0) with time zone NOT NULL DEFAULT NOW()
+);
