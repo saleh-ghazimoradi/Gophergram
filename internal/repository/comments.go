@@ -7,23 +7,26 @@ import (
 )
 
 type Comments interface {
-	GetByPostID(ctx context.Context, postID int64) ([]service_modles.Comments, error)
+	GetByPostID(ctx context.Context, id int64) ([]service_modles.Comments, error)
 }
 
 type commentRepository struct {
 	DB *sql.DB
 }
 
-func (c *commentRepository) GetByPostID(ctx context.Context, postID int64) ([]service_modles.Comments, error) {
-	query := `SELECT c.id, c.post_id, c.user_id, c.content, c.created_at, users.username, users.id FROM comments c JOIN users on users.id = c.user_id WHERE c.post_id = $1 ORDER BY c.created_at DESC `
+func (c *commentRepository) GetByPostID(ctx context.Context, id int64) ([]service_modles.Comments, error) {
+	query := `SELECT c.id, c.post_id, c.user_id, c.content, c.created_at, users.username, users.id  FROM comments c
+		JOIN users on users.id = c.user_id
+		WHERE c.post_id = $1
+		ORDER BY c.created_at DESC; `
 
-	rows, err := c.DB.QueryContext(ctx, query, postID)
+	rows, err := c.DB.QueryContext(ctx, query, id)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	comments := make([]service_modles.Comments, 0)
+	comments := []service_modles.Comments{}
 
 	for rows.Next() {
 		var c service_modles.Comments

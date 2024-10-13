@@ -7,8 +7,8 @@ type Post struct {
 	Content   string     `json:"content"`
 	Title     string     `json:"title"`
 	UserID    int64      `json:"user_id"`
-	Tags      []string   `json:"tag"`
+	Tags      []string   `json:"tags"`
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt time.Time  `json:"updated_at"`
-	Comments  []Comments `json:"comments"`
+	Comment   []Comments `json:"comments"`
 }

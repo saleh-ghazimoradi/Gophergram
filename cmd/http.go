@@ -42,14 +42,17 @@ var httpCmd = &cobra.Command{
 
 		logger.Logger.Info("database connection pool established")
 
-		//userDB := repository.NewUserRepository(db)
+		/*-------------------repo---------------------*/
 		postDB := repository.NewPostRepository(db)
+		commentDB := repository.NewCommentRepository(db)
 
-		//userService := service.NewServiceUser(userDB)
-		postService := service.NewPostService(postDB)
-		postHandler := gateway.NewPostHandler(postService)
+		/*-------------------service---------------------*/
+		postService := service.NewPostService(postDB, commentDB)
+		commentService := service.NewCommentService(commentDB)
+		/*-------------------handler----------------------*/
+		postHandler := gateway.NewPostHandler(postService, commentService)
 
-		handlers := gateway.Handlers{
+		routeHandlers := gateway.Handlers{
 			CreatePostHandler:      postHandler.CreatePost,
 			GetPostHandler:         postHandler.GetPost,
 			DeletePostHandler:      postHandler.DeletePost,
@@ -57,7 +60,7 @@ var httpCmd = &cobra.Command{
 			PostsContextMiddleware: postHandler.PostsContextMiddleware,
 		}
 
-		if err := gateway.Server(gateway.Routes(handlers)); err != nil {
+		if err := gateway.Server(gateway.Routes(routeHandlers)); err != nil {
 			logger.Logger.Fatal(err)
 		}
 	},

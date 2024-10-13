@@ -25,6 +25,11 @@ type postPayload struct {
 	Tags    []string `json:"tags"`
 }
 
+type updatePayload struct {
+	Title   *string `json:"title" validate:"omitempty,max=100"`
+	Content *string `json:"content" validate:"omitempty,max=1000"`
+}
+
 func (p *Posts) CreatePost(w http.ResponseWriter, r *http.Request) {
 	var payload postPayload
 	if err := readJSON(w, r, &payload); err != nil {
@@ -58,7 +63,7 @@ func (p *Posts) CreatePost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *Posts) GetPost(w http.ResponseWriter, r *http.Request) {
-	post := getPostFromCTX(r)
+	post := p.GetPostFromCTX(r)
 
 	comments, err := p.commentService.GetByPostID(r.Context(), post.ID)
 	if err != nil {
@@ -66,7 +71,7 @@ func (p *Posts) GetPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	post.Comments = comments
+	post.Comment = comments
 
 	if err := writeJSON(w, http.StatusOK, post); err != nil {
 		internalServerError(w, r, err)
@@ -95,7 +100,32 @@ func (p *Posts) DeletePost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *Posts) UpdatePost(w http.ResponseWriter, r *http.Request) {
-	post := getPostFromCTX(r)
+	post := p.GetPostFromCTX(r)
+
+	var payload updatePayload
+	if err := readJSON(w, r, &payload); err != nil {
+		badRequestResponse(w, r, err)
+		return
+	}
+
+	if err := Validate.Struct(payload); err != nil {
+		badRequestResponse(w, r, err)
+		return
+	}
+
+	if payload.Content != nil {
+		post.Content = *payload.Content
+	}
+
+	if payload.Title != nil {
+		post.Title = *payload.Title
+	}
+
+	if err := p.postService.Update(r.Context(), post); err != nil {
+		internalServerError(w, r, err)
+		return
+	}
+
 	if err := writeJSON(w, http.StatusOK, post); err != nil {
 		internalServerError(w, r, err)
 		return
@@ -122,18 +152,19 @@ func (p *Posts) PostsContextMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx = context.WithValue(ctx, "post", post)
+		ctx = context.WithValue(ctx, postCtx, post)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
-func getPostFromCTX(r *http.Request) *service_modles.Post {
+func (p *Posts) GetPostFromCTX(r *http.Request) *service_modles.Post {
 	post, _ := r.Context().Value(postCtx).(*service_modles.Post)
 	return post
 }
 
-func NewPostHandler(postService service.Posts) *Posts {
-	return &Posts{
-		postService: postService,
+func NewPostHandler(postService service.Posts, commentService service.Comments) Posts {
+	return Posts{
+		postService:    postService,
+		commentService: commentService,
 	}
 }

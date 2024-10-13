@@ -20,14 +20,14 @@ type Handlers struct {
 func Routes(handler Handlers) http.Handler {
 	mux := http.NewServeMux()
 
-	standard := alice.New(recoverPanic, logRequest, commonHeaders)
+	//standard := alice.New(recoverPanic, logRequest, commonHeaders)
 	postChain := alice.New(handler.PostsContextMiddleware)
 
 	mux.HandleFunc("GET /v1/health", healthCheckHandler)
-	mux.HandleFunc("POST /v1/post", handler.CreatePostHandler)
-	mux.Handle("/v1/post/{id}", postChain.Then(handler.GetPostHandler))
-	mux.Handle("/v1/post/{id}", postChain.Then(handler.DeletePostHandler))
-	mux.Handle("/v1/post/{id}", postChain.Then(handler.UpdatePostHandler))
+	mux.Handle("POST /v1/post", handler.CreatePostHandler)
+	mux.Handle("GET /v1/post/{id}", postChain.Then(handler.GetPostHandler))
+	mux.Handle("DELETE /v1/post/{id}", postChain.Then(handler.DeletePostHandler))
+	mux.Handle("PATCH /v1/post/{id}", postChain.Then(handler.UpdatePostHandler))
 
-	return standard.Then(mux)
+	return mux
 }

@@ -10,10 +10,12 @@ type Posts interface {
 	Create(ctx context.Context, post *service_modles.Post) error
 	GetByID(ctx context.Context, id int64) (*service_modles.Post, error)
 	Delete(ctx context.Context, id int64) error
+	Update(ctx context.Context, post *service_modles.Post) error
 }
 
 type postService struct {
-	postRepo repository.Posts
+	postRepo    repository.Posts
+	commentRepo repository.Comments
 }
 
 func (p *postService) Create(ctx context.Context, post *service_modles.Post) error {
@@ -28,6 +30,10 @@ func (p *postService) Delete(ctx context.Context, id int64) error {
 	return p.postRepo.Delete(ctx, id)
 }
 
-func NewPostService(postsRepo repository.Posts) Posts {
-	return &postService{postRepo: postsRepo}
+func (p *postService) Update(ctx context.Context, post *service_modles.Post) error {
+	return p.postRepo.Update(ctx, post)
+}
+
+func NewPostService(postsRepo repository.Posts, commentRepo repository.Comments) Posts {
+	return &postService{postRepo: postsRepo, commentRepo: commentRepo}
 }
