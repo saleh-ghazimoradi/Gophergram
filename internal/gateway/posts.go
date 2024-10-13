@@ -56,7 +56,7 @@ func (p *Posts) CreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := writeJSON(w, http.StatusCreated, post); err != nil {
+	if err := jsonResponse(w, http.StatusCreated, post); err != nil {
 		internalServerError(w, r, err)
 		return
 	}
@@ -73,7 +73,7 @@ func (p *Posts) GetPost(w http.ResponseWriter, r *http.Request) {
 
 	post.Comment = comments
 
-	if err := writeJSON(w, http.StatusOK, post); err != nil {
+	if err := jsonResponse(w, http.StatusOK, post); err != nil {
 		internalServerError(w, r, err)
 		return
 	}
@@ -126,7 +126,7 @@ func (p *Posts) UpdatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := writeJSON(w, http.StatusOK, post); err != nil {
+	if err := jsonResponse(w, http.StatusOK, post); err != nil {
 		internalServerError(w, r, err)
 		return
 	}
