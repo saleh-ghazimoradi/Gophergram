@@ -85,6 +85,26 @@ func (p *Posts) GetPost(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (p *Posts) DeletePost(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		internalServerError(w, r, err)
+		return
+	}
+	ctx := r.Context()
+
+	if err := p.postService.Delete(ctx, id); err != nil {
+		switch {
+		case errors.Is(err, repository.ErrNotFound):
+			notFoundResponse(w, r, err)
+		default:
+			internalServerError(w, r, err)
+		}
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func NewPostHandler(postService service.Posts) *Posts {
 	return &Posts{
 		postService: postService,

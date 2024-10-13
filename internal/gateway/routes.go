@@ -20,7 +20,8 @@ func Routes(handler Handlers) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /v1/health", healthCheckHandler)
 	mux.HandleFunc("POST /v1/post", handler.CreatePostHandler)
-	mux.HandleFunc("GET /v1/posts/{id}", handler.GetPostHandler)
+	mux.HandleFunc("GET /v1/post/{id}", handler.GetPostHandler)
+	mux.HandleFunc("DELETE /v1/post/{id}", handler.DeletePostHandler)
 	standard := alice.New(recoverPanic, logRequest, commonHeaders)
 
 	return standard.Then(mux)

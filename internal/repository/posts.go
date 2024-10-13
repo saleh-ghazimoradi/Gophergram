@@ -11,6 +11,7 @@ import (
 type Posts interface {
 	Create(ctx context.Context, post *service_modles.Post) error
 	GetByID(ctx context.Context, id int64) (*service_modles.Post, error)
+	Delete(ctx context.Context, id int64) error
 }
 
 type postRepository struct {
@@ -40,6 +41,22 @@ func (p *postRepository) GetByID(ctx context.Context, id int64) (*service_modles
 		}
 	}
 	return &post, nil
+}
+
+func (p *postRepository) Delete(ctx context.Context, id int64) error {
+	query := `DELETE FROM posts WHERE id = $1`
+	result, err := p.db.ExecContext(ctx, query, id)
+	if err != nil {
+		return err
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return ErrNotFound
+	}
+	return nil
 }
 
 func NewPostRepository(db *sql.DB) Posts {
