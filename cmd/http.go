@@ -50,9 +50,11 @@ var httpCmd = &cobra.Command{
 		postHandler := gateway.NewPostHandler(postService)
 
 		handlers := gateway.Handlers{
-			CreatePostHandler: postHandler.CreatePost,
-			GetPostHandler:    postHandler.GetPost,
-			DeletePostHandler: postHandler.DeletePost,
+			CreatePostHandler:      postHandler.CreatePost,
+			GetPostHandler:         postHandler.GetPost,
+			DeletePostHandler:      postHandler.DeletePost,
+			UpdatePostHandler:      postHandler.UpdatePost,
+			PostsContextMiddleware: postHandler.PostsContextMiddleware,
 		}
 
 		if err := gateway.Server(gateway.Routes(handlers)); err != nil {

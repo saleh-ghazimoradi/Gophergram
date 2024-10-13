@@ -1,6 +1,7 @@
 package gateway
 
 import (
+	"context"
 	"errors"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/repository"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/service"
@@ -8,6 +9,10 @@ import (
 	"net/http"
 	"strconv"
 )
+
+type postKey string
+
+const postCtx postKey = "post"
 
 type Posts struct {
 	postService    service.Posts
@@ -53,25 +58,9 @@ func (p *Posts) CreatePost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *Posts) GetPost(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
-	if err != nil {
-		internalServerError(w, r, err)
-		return
-	}
-	ctx := r.Context()
+	post := getPostFromCTX(r)
 
-	post, err := p.postService.GetByID(ctx, id)
-	if err != nil {
-		switch {
-		case errors.Is(err, repository.ErrNotFound):
-			notFoundResponse(w, r, err)
-		default:
-			internalServerError(w, r, err)
-		}
-		return
-	}
-
-	comments, err := p.commentService.GetByPostID(ctx, id)
+	comments, err := p.commentService.GetByPostID(r.Context(), post.ID)
 	if err != nil {
 		internalServerError(w, r, err)
 		return
@@ -103,6 +92,44 @@ func (p *Posts) DeletePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (p *Posts) UpdatePost(w http.ResponseWriter, r *http.Request) {
+	post := getPostFromCTX(r)
+	if err := writeJSON(w, http.StatusOK, post); err != nil {
+		internalServerError(w, r, err)
+		return
+	}
+}
+
+func (p *Posts) PostsContextMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+		if err != nil {
+			internalServerError(w, r, err)
+			return
+		}
+		ctx := r.Context()
+
+		post, err := p.postService.GetByID(ctx, id)
+		if err != nil {
+			switch {
+			case errors.Is(err, repository.ErrNotFound):
+				notFoundResponse(w, r, err)
+			default:
+				internalServerError(w, r, err)
+			}
+			return
+		}
+
+		ctx = context.WithValue(ctx, "post", post)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func getPostFromCTX(r *http.Request) *service_modles.Post {
+	post, _ := r.Context().Value(postCtx).(*service_modles.Post)
+	return post
 }
 
 func NewPostHandler(postService service.Posts) *Posts {
