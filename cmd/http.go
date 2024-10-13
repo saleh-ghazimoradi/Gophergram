@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"github.com/saleh-ghazimoradi/Gophergram/config"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/gateway"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/repository"
@@ -43,15 +42,19 @@ var httpCmd = &cobra.Command{
 
 		logger.Logger.Info("database connection pool established")
 
-		userDB := repository.NewUserRepository(db)
+		//userDB := repository.NewUserRepository(db)
 		postDB := repository.NewPostRepository(db)
 
-		userService := service.NewServiceUser(userDB)
+		//userService := service.NewServiceUser(userDB)
 		postService := service.NewPostService(postDB)
+		postHandler := gateway.NewPostHandler(postService)
 
-		fmt.Println(userService, postService)
+		handlers := gateway.Handlers{
+			CreatePostHandler: postHandler.CreatePost,
+			GetPostHandler:    postHandler.GetPost,
+		}
 
-		if err := gateway.Server(gateway.Routes()); err != nil {
+		if err := gateway.Server(gateway.Routes(handlers)); err != nil {
 			logger.Logger.Fatal(err)
 		}
 	},
