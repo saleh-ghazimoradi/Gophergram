@@ -10,7 +10,8 @@ import (
 )
 
 type Posts struct {
-	postService service.Posts
+	postService    service.Posts
+	commentService service.Comments
 }
 
 type postPayload struct {
@@ -69,6 +70,14 @@ func (p *Posts) GetPost(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+
+	comments, err := p.commentService.GetByPostID(ctx, id)
+	if err != nil {
+		internalServerError(w, r, err)
+		return
+	}
+
+	post.Comments = comments
 
 	if err := writeJSON(w, http.StatusOK, post); err != nil {
 		internalServerError(w, r, err)
