@@ -22,7 +22,7 @@ type postPayload struct {
 func (p *Posts) CreatePost(w http.ResponseWriter, r *http.Request) {
 	var payload postPayload
 	if err := readJSON(w, r, &payload); err != nil {
-		writeJSONError(w, http.StatusBadRequest, err.Error())
+		badRequestResponse(w, r, err)
 		return
 	}
 
@@ -36,12 +36,12 @@ func (p *Posts) CreatePost(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	if err := p.postService.Create(ctx, post); err != nil {
-		writeJSONError(w, http.StatusInternalServerError, err.Error())
+		internalServerError(w, r, err)
 		return
 	}
 
 	if err := writeJSON(w, http.StatusCreated, post); err != nil {
-		writeJSONError(w, http.StatusInternalServerError, err.Error())
+		internalServerError(w, r, err)
 		return
 	}
 }
@@ -49,7 +49,7 @@ func (p *Posts) CreatePost(w http.ResponseWriter, r *http.Request) {
 func (p *Posts) GetPost(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	if err != nil {
-		writeJSONError(w, http.StatusInternalServerError, err.Error())
+		internalServerError(w, r, err)
 		return
 	}
 	ctx := r.Context()
@@ -58,15 +58,15 @@ func (p *Posts) GetPost(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, repository.ErrNotFound):
-			writeJSONError(w, http.StatusNotFound, err.Error())
+			notFoundResponse(w, r, err)
 		default:
-			writeJSONError(w, http.StatusInternalServerError, err.Error())
+			internalServerError(w, r, err)
 		}
 		return
 	}
 
 	if err := writeJSON(w, http.StatusOK, post); err != nil {
-		writeJSONError(w, http.StatusInternalServerError, err.Error())
+		internalServerError(w, r, err)
 		return
 	}
 }
