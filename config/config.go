@@ -11,7 +11,13 @@ var AppConfig *config
 type config struct {
 	General  General  `mapstructure:"general"`  // general configs
 	Database Database `mapstructure:"database"` // databases configs
+	Env      Env      `mapstructure:"env"`
 }
+
+type Env struct {
+	Env string `mapstructure:"env"`
+}
+
 type General struct {
 	Listen   string `mapstructure:"listen"` // rest listen port
 	LogLevel int8   `mapstructure:"log_level"`
