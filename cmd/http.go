@@ -50,15 +50,17 @@ var httpCmd = &cobra.Command{
 		/*-------------------service---------------------*/
 		postService := service.NewPostService(postDB, commentDB)
 		commentService := service.NewCommentService(commentDB)
-		_ = service.NewServiceUser(userDB)
+		userService := service.NewServiceUser(userDB)
 		/*-------------------handler----------------------*/
 		postHandler := gateway.NewPostHandler(postService, commentService)
+		userHandler := gateway.NewUserHandler(userService)
 
 		routeHandlers := gateway.Handlers{
 			CreatePostHandler:      postHandler.CreatePost,
 			GetPostHandler:         postHandler.GetPost,
 			DeletePostHandler:      postHandler.DeletePost,
 			UpdatePostHandler:      postHandler.UpdatePost,
+			GetUserHandler:         userHandler.GetUserByID,
 			PostsContextMiddleware: postHandler.PostsContextMiddleware,
 		}
 

@@ -28,6 +28,7 @@ func Routes(handler Handlers) http.Handler {
 	mux.Handle("GET /v1/post/{id}", postChain.Then(handler.GetPostHandler))
 	mux.Handle("DELETE /v1/post/{id}", postChain.Then(handler.DeletePostHandler))
 	mux.Handle("PATCH /v1/post/{id}", postChain.Then(handler.UpdatePostHandler))
+	mux.Handle("GET /v1/user/{id}", handler.GetUserHandler)
 
 	return standard.Then(mux)
 }
