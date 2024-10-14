@@ -24,7 +24,7 @@ func (u *User) GetUserByID(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch err {
 		case repository.ErrNotFound:
-			badRequestResponse(w, r, err)
+			notFoundResponse(w, r, err)
 		default:
 			internalServerError(w, r, err)
 		}
