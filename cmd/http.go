@@ -45,10 +45,12 @@ var httpCmd = &cobra.Command{
 		/*-------------------repo---------------------*/
 		postDB := repository.NewPostRepository(db)
 		commentDB := repository.NewCommentRepository(db)
+		userDB := repository.NewUserRepository(db)
 
 		/*-------------------service---------------------*/
 		postService := service.NewPostService(postDB, commentDB)
 		commentService := service.NewCommentService(commentDB)
+		_ = service.NewServiceUser(userDB)
 		/*-------------------handler----------------------*/
 		postHandler := gateway.NewPostHandler(postService, commentService)
 

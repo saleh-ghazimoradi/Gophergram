@@ -15,7 +15,21 @@ type userService struct {
 }
 
 func (u *userService) Create(ctx context.Context, users *service_modles.Users) error {
-	return u.userRepo.Create(ctx, users)
+	tx, err := u.userRepo.BeginTx(ctx)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			err = tx.Commit()
+		}
+	}()
+	if err := u.userRepo.Create(ctx, tx, users); err != nil {
+		return err
+	}
+	return nil
 }
 
 func NewServiceUser(repo repository.Users) Users {
