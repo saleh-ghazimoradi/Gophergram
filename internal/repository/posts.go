@@ -31,7 +31,7 @@ func (p *postRepository) Create(ctx context.Context, post *service_modles.Post) 
 
 func (p *postRepository) GetByID(ctx context.Context, id int64) (*service_modles.Post, error) {
 	query := `
-		SELECT id, user_id, title, content, created_at,  updated_at, tags
+		SELECT id, user_id, title, content, created_at,  updated_at, tags, version
 		FROM posts
 		WHERE id = $1
 	`
@@ -44,6 +44,7 @@ func (p *postRepository) GetByID(ctx context.Context, id int64) (*service_modles
 		&post.CreatedAt,
 		&post.UpdatedAt,
 		pq.Array(&post.Tags),
+		&post.Version,
 	)
 	if err != nil {
 		switch {
@@ -74,11 +75,16 @@ func (p *postRepository) Delete(ctx context.Context, id int64) error {
 }
 
 func (p *postRepository) Update(ctx context.Context, post *service_modles.Post) error {
-	query := `UPDATE posts SET title = $1, content = $2 WHERE id = $3`
+	query := `UPDATE posts SET title = $1, content = $2, version = version + 1 WHERE id = $3 AND version = $4 RETURNING version`
 
-	_, err := p.db.ExecContext(ctx, query, post.Title, post.Content, post.ID)
+	err := p.db.QueryRowContext(ctx, query, post.Title, post.Content, post.ID, post.Version).Scan(&post.Version)
 	if err != nil {
-		return err
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return ErrNotFound
+		default:
+			return err
+		}
 	}
 	return nil
 }

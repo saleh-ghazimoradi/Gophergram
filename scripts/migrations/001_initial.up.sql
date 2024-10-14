@@ -31,3 +31,5 @@ CREATE TABLE IF NOT EXISTS public.comments(
     content TEXT NOT NULL,
     created_at timestamp(0) with time zone NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE public.posts ADD COLUMN version INT DEFAULT 0;
