@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/lib/pq"
+	"github.com/saleh-ghazimoradi/Gophergram/config"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/service/service_modles"
 )
 
@@ -22,6 +23,9 @@ type postRepository struct {
 func (p *postRepository) Create(ctx context.Context, post *service_modles.Post) error {
 	query := `INSERT INTO posts(content, title, user_id, tags) VALUES($1, $2, $3, $4) RETURNING id, created_at, updated_at`
 
+	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.QueryTimeOut.Timeout)
+	defer cancel()
+
 	err := p.db.QueryRowContext(ctx, query, post.Content, post.Title, post.UserID, pq.Array(post.Tags)).Scan(&post.ID, &post.CreatedAt, &post.UpdatedAt)
 	if err != nil {
 		return err
@@ -35,6 +39,8 @@ func (p *postRepository) GetByID(ctx context.Context, id int64) (*service_modles
 		FROM posts
 		WHERE id = $1
 	`
+	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.QueryTimeOut.Timeout)
+	defer cancel()
 	var post service_modles.Post
 	err := p.db.QueryRowContext(ctx, query, id).Scan(
 		&post.ID,
@@ -60,6 +66,8 @@ func (p *postRepository) GetByID(ctx context.Context, id int64) (*service_modles
 
 func (p *postRepository) Delete(ctx context.Context, id int64) error {
 	query := `DELETE FROM posts WHERE id = $1`
+	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.QueryTimeOut.Timeout)
+	defer cancel()
 	result, err := p.db.ExecContext(ctx, query, id)
 	if err != nil {
 		return err
@@ -76,6 +84,9 @@ func (p *postRepository) Delete(ctx context.Context, id int64) error {
 
 func (p *postRepository) Update(ctx context.Context, post *service_modles.Post) error {
 	query := `UPDATE posts SET title = $1, content = $2, version = version + 1 WHERE id = $3 AND version = $4 RETURNING version`
+
+	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.QueryTimeOut.Timeout)
+	defer cancel()
 
 	err := p.db.QueryRowContext(ctx, query, post.Title, post.Content, post.ID, post.Version).Scan(&post.Version)
 	if err != nil {

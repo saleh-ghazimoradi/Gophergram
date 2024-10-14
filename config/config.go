@@ -9,13 +9,18 @@ import (
 var AppConfig *config
 
 type config struct {
-	General  General  `mapstructure:"general"`  // general configs
-	Database Database `mapstructure:"database"` // databases configs
-	Env      Env      `mapstructure:"env"`
+	General      General      `mapstructure:"general"`  // general configs
+	Database     Database     `mapstructure:"database"` // databases configs
+	Env          Env          `mapstructure:"env"`
+	QueryTimeOut QueryTimeOut `mapstructure:"query_timeout"`
 }
 
 type Env struct {
 	Env string `mapstructure:"env"`
+}
+
+type QueryTimeOut struct {
+	Timeout time.Duration `mapstructure:"timeout"`
 }
 
 type General struct {
