@@ -46,14 +46,16 @@ var httpCmd = &cobra.Command{
 		postDB := repository.NewPostRepository(db)
 		commentDB := repository.NewCommentRepository(db)
 		userDB := repository.NewUserRepository(db)
+		followDB := repository.NewFollowRepository(db)
 
 		/*-------------------service---------------------*/
 		postService := service.NewPostService(postDB, commentDB)
 		commentService := service.NewCommentService(commentDB)
 		userService := service.NewServiceUser(userDB)
+		followService := service.NewFollowService(followDB)
 		/*-------------------handler----------------------*/
 		postHandler := gateway.NewPostHandler(postService, commentService)
-		userHandler := gateway.NewUserHandler(userService)
+		userHandler := gateway.NewUserHandler(userService, followService)
 
 		routeHandlers := gateway.Handlers{
 			CreatePostHandler:      postHandler.CreatePost,
@@ -61,7 +63,10 @@ var httpCmd = &cobra.Command{
 			DeletePostHandler:      postHandler.DeletePost,
 			UpdatePostHandler:      postHandler.UpdatePost,
 			GetUserHandler:         userHandler.GetUserByID,
+			FollowUserHandler:      userHandler.FollowUserHandler,
+			UnfollowUserHandler:    userHandler.UnfollowUserHandler,
 			PostsContextMiddleware: postHandler.PostsContextMiddleware,
+			UsersContextMiddleware: userHandler.UserContextMiddleware,
 		}
 
 		if err := gateway.Server(gateway.Routes(routeHandlers)); err != nil {
