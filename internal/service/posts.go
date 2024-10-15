@@ -12,6 +12,8 @@ type Posts interface {
 	GetByID(ctx context.Context, id int64) (*service_modles.Post, error)
 	Delete(ctx context.Context, id int64) error
 	Update(ctx context.Context, post *service_modles.Post) error
+	GetUserFeed(ctx context.Context, id int64, fq service_modles.PaginatedFeedQuery) ([]service_modles.PostWithMetaData, error)
+	//Parse(r *http.Request) (service_modles.PaginatedFeedQuery, error)
 }
 
 type postService struct {
@@ -97,6 +99,10 @@ func (p *postService) Update(ctx context.Context, post *service_modles.Post) err
 		return err
 	}
 	return nil
+}
+
+func (p *postService) GetUserFeed(ctx context.Context, id int64, fq service_modles.PaginatedFeedQuery) ([]service_modles.PostWithMetaData, error) {
+	return p.postRepo.GetUserFeed(ctx, id, fq)
 }
 
 func NewPostService(postsRepo repository.Posts, commentRepo repository.Comments) Posts {

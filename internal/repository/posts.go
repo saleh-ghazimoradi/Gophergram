@@ -14,6 +14,7 @@ type Posts interface {
 	GetByID(ctx context.Context, tx *sql.Tx, id int64) (*service_modles.Post, error)
 	Delete(ctx context.Context, tx *sql.Tx, id int64) error
 	Update(ctx context.Context, tx *sql.Tx, post *service_modles.Post) error
+	GetUserFeed(ctx context.Context, id int64, fq service_modles.PaginatedFeedQuery) ([]service_modles.PostWithMetaData, error)
 	BeginTx(ctx context.Context) (*sql.Tx, error)
 }
 
@@ -103,6 +104,53 @@ func (p *postRepository) Update(ctx context.Context, tx *sql.Tx, post *service_m
 		}
 	}
 	return nil
+}
+
+func (p *postRepository) GetUserFeed(ctx context.Context, id int64, fq service_modles.PaginatedFeedQuery) ([]service_modles.PostWithMetaData, error) {
+	query := `
+	   SELECT
+	       p.id, p.user_id, p.title, p.content, p.created_at, p.version, p.tags,
+	       u.username,
+	       COUNT(c.id) AS comments_count
+	   FROM posts p
+	   LEFT JOIN comments c ON c.post_id = p.id
+	   LEFT JOIN users u ON p.user_id = u.id
+	   JOIN followers f ON f.follower_id = p.user_id OR p.user_id = $1
+	   WHERE f.user_id = $1 OR p.user_id = $1
+	   GROUP BY p.id, u.username
+	   ORDER BY p.created_at ` + fq.Sort + `
+	   LIMIT $2 OFFSET $3
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.QueryTimeOut.Timeout)
+	defer cancel()
+
+	rows, err := p.db.QueryContext(ctx, query, id, fq.Limit, fq.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var feed []service_modles.PostWithMetaData
+	for rows.Next() {
+		var p service_modles.PostWithMetaData
+		err := rows.Scan(
+			&p.ID,
+			&p.UserID,
+			&p.Title,
+			&p.Content,
+			&p.CreatedAt,
+			&p.Version,
+			pq.Array(&p.Tags),
+			&p.User.Username,
+			&p.CommentsCount,
+		)
+		if err != nil {
+			return nil, err
+		}
+		feed = append(feed, p)
+	}
+	return feed, nil
 }
 
 func NewPostRepository(db *sql.DB) Posts {

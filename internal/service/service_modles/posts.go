@@ -12,4 +12,10 @@ type Post struct {
 	UpdatedAt time.Time  `json:"updated_at"`
 	Version   int        `json:"version"`
 	Comment   []Comments `json:"comments"`
+	User      Users      `json:"user"`
+}
+
+type PostWithMetaData struct {
+	Post
+	CommentsCount int `json:"comments_count"`
 }

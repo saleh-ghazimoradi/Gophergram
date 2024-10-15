@@ -12,6 +12,7 @@ type Handlers struct {
 	GetPostHandler         http.HandlerFunc
 	CreateUserHandler      http.HandlerFunc
 	GetUserHandler         http.HandlerFunc
+	GetUserFeedHandler     http.HandlerFunc
 	UpdateUserHandler      http.HandlerFunc
 	DeleteUserHandler      http.HandlerFunc
 	FollowUserHandler      http.HandlerFunc
@@ -35,6 +36,7 @@ func Routes(handler Handlers) http.Handler {
 	mux.Handle("GET /v1/user/{id}", userChain.Then(handler.GetUserHandler))
 	mux.Handle("PUT /v1/user/{id}/follow", userChain.Then(handler.FollowUserHandler))
 	mux.Handle("PUT /v1/user/{id}/unfollow", userChain.Then(handler.UnfollowUserHandler))
+	mux.Handle("GET /v1/user/feed", handler.GetUserFeedHandler)
 
 	return standard.Then(mux)
 }
