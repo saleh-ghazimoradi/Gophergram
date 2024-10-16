@@ -13,7 +13,6 @@ type Posts interface {
 	Delete(ctx context.Context, id int64) error
 	Update(ctx context.Context, post *service_modles.Post) error
 	GetUserFeed(ctx context.Context, id int64, fq service_modles.PaginatedFeedQuery) ([]service_modles.PostWithMetaData, error)
-	//Parse(r *http.Request) (service_modles.PaginatedFeedQuery, error)
 }
 
 type postService struct {

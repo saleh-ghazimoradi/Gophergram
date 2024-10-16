@@ -57,6 +57,7 @@ var httpCmd = &cobra.Command{
 		postHandler := gateway.NewPostHandler(postService, commentService)
 		userHandler := gateway.NewUserHandler(userService, followService)
 		feedHandler := gateway.NewFeedHandler(postService)
+		authHandler := gateway.NewAuth(userService)
 
 		routeHandlers := gateway.Handlers{
 			CreatePostHandler:      postHandler.CreatePost,
@@ -67,6 +68,7 @@ var httpCmd = &cobra.Command{
 			FollowUserHandler:      userHandler.FollowUserHandler,
 			UnfollowUserHandler:    userHandler.UnfollowUserHandler,
 			GetUserFeedHandler:     feedHandler.GetUserFeedHandler,
+			RegisterUserHandler:    authHandler.RegisterUserHandler,
 			PostsContextMiddleware: postHandler.PostsContextMiddleware,
 			UsersContextMiddleware: userHandler.UserContextMiddleware,
 		}

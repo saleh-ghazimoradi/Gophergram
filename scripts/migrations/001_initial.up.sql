@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS public.comments(
 
 ALTER TABLE public.posts ADD COLUMN version INT DEFAULT 0;
 
-CREATE TABLE IF NOT EXISTS followers (
+CREATE TABLE IF NOT EXISTS public.followers (
     user_id bigint NOT NULL,
     follower_id bigint NOT NULL,
     created_at timestamp(0) with time zone NOT NULL DEFAULT NOW(),
@@ -53,3 +53,12 @@ CREATE INDEX IF NOT EXISTS idx_posts_tags ON posts USING gin (tags);
 CREATE INDEX IF NOT EXISTS idx_users_username ON users (username);
 CREATE INDEX IF NOT EXISTS idx_posts_user_id ON posts (user_id);
 CREATE INDEX IF NOT EXISTS idx_comments_post_id ON comments (post_id);
+
+CREATE TABLE IF NOT EXISTS public.user_invitation (
+    token bytea PRIMARY KEY,
+    user_id bigint NOT NULL
+);
+
+ALTER TABLE public.users ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT FALSE;
+
+ALTER TABLE public.user_invitation ADD COLUMN expiry TIMESTAMP(0) WITH TIME ZONE NOT NULL;

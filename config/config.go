@@ -24,9 +24,14 @@ type QueryTimeOut struct {
 }
 
 type General struct {
-	Listen   string `mapstructure:"listen"` // rest listen port
-	LogLevel int8   `mapstructure:"log_level"`
-	APIURL   APIURL `mapstructure:"api_url"`
+	Listen   string     `mapstructure:"listen"` // rest listen port
+	LogLevel int8       `mapstructure:"log_level"`
+	APIURL   APIURL     `mapstructure:"api_url"`
+	Mail     MailConfig `mapstructure:"mail"`
+}
+
+type MailConfig struct {
+	Exp time.Duration `mapstructure:"exp"`
 }
 
 type APIURL struct {

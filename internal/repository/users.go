@@ -5,11 +5,13 @@ import (
 	"database/sql"
 	"github.com/saleh-ghazimoradi/Gophergram/config"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/service/service_modles"
+	"time"
 )
 
 type Users interface {
 	Create(ctx context.Context, tx *sql.Tx, user *service_modles.Users) error
 	GetByID(ctx context.Context, tx *sql.Tx, id int64) (*service_modles.Users, error)
+	CreateUserInvitation(ctx context.Context, tx *sql.Tx, token string, exp time.Duration, id int64) error
 	BeginTx(ctx context.Context) (*sql.Tx, error)
 }
 
@@ -27,9 +29,16 @@ func (u *userRepository) Create(ctx context.Context, tx *sql.Tx, user *service_m
 	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.QueryTimeOut.Timeout)
 	defer cancel()
 
-	err := tx.QueryRowContext(ctx, query, user.Username, user.Password, user.Email).Scan(&user.ID, &user.CreatedAt)
+	err := tx.QueryRowContext(ctx, query, user.Username, user.Password.Hash, user.Email).Scan(&user.ID, &user.CreatedAt)
 	if err != nil {
-		return err
+		switch {
+		case err.Error() == `pq: duplicate key value violates unique constraint "users_email_key"`:
+			return ErrDuplicateEmails
+		case err.Error() == `pq: duplicate key value violates unique constraint "users_username_key"`:
+			return ErrDuplicateUsernames
+		default:
+			return err
+		}
 	}
 
 	return nil
@@ -50,6 +59,21 @@ func (u *userRepository) GetByID(ctx context.Context, tx *sql.Tx, id int64) (*se
 		}
 	}
 	return &user, nil
+}
+
+func (u *userRepository) CreateUserInvitation(ctx context.Context, tx *sql.Tx, token string, exp time.Duration, id int64) error {
+
+	query := `INSERT INTO user_invitation (token, user_id, expiry) VALUES ($1, $2, $3)`
+
+	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.QueryTimeOut.Timeout)
+	defer cancel()
+
+	_, err := tx.ExecContext(ctx, query, token, id, time.Now().Add(exp))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func NewUserRepository(db *sql.DB) Users {
