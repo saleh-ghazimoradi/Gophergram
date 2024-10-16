@@ -117,6 +117,37 @@ func (u *User) UnfollowUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ActivateUserHandler gdoc
+//
+//	@Summary		Activate/Register a user
+//	@Description	Activates/Registers a user by invitation token
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			token	path		string		true	"Invitation token"
+//	@Success		204		{string}	string	"User activated"
+//	@Failure		400		{object}	error
+//	@Failure		404		{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/user/activate/{token} [put]
+func (u *User) ActivateUserHandler(w http.ResponseWriter, r *http.Request) {
+	token := r.PathValue("token")
+
+	err := u.userService.ActivateUser(r.Context(), token)
+	if err != nil {
+		switch err {
+		case repository.ErrNotFound:
+			notFoundResponse(w, r, err)
+		default:
+			internalServerError(w, r, err)
+		}
+		return
+	}
+	if err := jsonResponse(w, http.StatusNoContent, ""); err != nil {
+		internalServerError(w, r, err)
+	}
+}
+
 func (u *User) UserContextMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)

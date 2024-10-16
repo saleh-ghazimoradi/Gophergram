@@ -11,6 +11,11 @@ import (
 	"net/http"
 )
 
+type UserWithToken struct {
+	*service_modles.Users
+	Token string `json:"token"`
+}
+
 type Auth struct {
 	userService service.Users
 }
@@ -23,7 +28,7 @@ type Auth struct {
 // @Accept json
 // @Produce json
 // @Param payload body service_modles.RegisterUserPayLoad true "User credentials"
-// @Success 201 {object} service_modles.Users "User registered"
+// @Success 201 {object} UserWithToken "User registered"
 // @Failure 400 {object} error
 // @Failure 500 {object} error
 // @Router /authentication/user [post]
@@ -68,7 +73,12 @@ func (a *Auth) RegisterUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := jsonResponse(w, http.StatusCreated, nil); err != nil {
+	userWithToken := &UserWithToken{
+		Users: user,
+		Token: plainToken,
+	}
+
+	if err := jsonResponse(w, http.StatusCreated, userWithToken); err != nil {
 		internalServerError(w, r, err)
 	}
 }

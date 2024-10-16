@@ -11,6 +11,7 @@ type Users struct {
 	Email     string    `json:"email"`
 	Password  Password  `json:"-"`
 	CreatedAt time.Time `json:"create_at"`
+	IsActive  bool      `json:"is_active"`
 }
 
 type Password struct {
