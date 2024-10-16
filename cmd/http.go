@@ -18,7 +18,7 @@ var httpCmd = &cobra.Command{
 	Use:   "http",
 	Short: "launching the http rest listen server",
 	Run: func(cmd *cobra.Command, args []string) {
-		logger.Logger.Info("http rest server is starting", config.AppConfig.General.Listen)
+		logger.Logger.Infow("server has started", "addr", config.AppConfig.General.Listen, "env", config.AppConfig.Env.Env)
 
 		// TODO: Make it more efficient
 		cfg := utils.PostgresConfig{
