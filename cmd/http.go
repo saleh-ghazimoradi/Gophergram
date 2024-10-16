@@ -64,9 +64,9 @@ var httpCmd = &cobra.Command{
 			DeletePostHandler:      postHandler.DeletePost,
 			UpdatePostHandler:      postHandler.UpdatePost,
 			GetUserHandler:         userHandler.GetUserByID,
-			GetUserFeedHandler:     feedHandler.GetUserFeedHandler,
 			FollowUserHandler:      userHandler.FollowUserHandler,
 			UnfollowUserHandler:    userHandler.UnfollowUserHandler,
+			GetUserFeedHandler:     feedHandler.GetUserFeedHandler,
 			PostsContextMiddleware: postHandler.PostsContextMiddleware,
 			UsersContextMiddleware: userHandler.UserContextMiddleware,
 		}

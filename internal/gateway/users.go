@@ -22,6 +22,20 @@ type FollowUser struct {
 	UserID int64 `json:"user_id"`
 }
 
+// GetUserByID godoc
+//
+// @Summary Fetches a user profile
+// @Description Fetches a user profile by ID
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param id	path	int true "id"
+// @Success 200 {object} service_modles.Users
+// @Failure 400 {object} error
+// @Failure 404 {object} error
+// @Failure 500 {object} error
+// @Security ApiKeyAuth
+// @Router /user/{id} [get]
 func (u *User) GetUserByID(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r)
 	if err := jsonResponse(w, http.StatusOK, user); err != nil {
@@ -29,6 +43,19 @@ func (u *User) GetUserByID(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// FollowUserHandler godoc
+//
+// @Summary Follow a user
+// @Description Follows a user by ID
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param userID	path	int true "id"
+// @Success 204 {object} string "User followed"
+// @Failure 400 {object} error "User payload missing"
+// @Failure 404 {object} error "User not found"
+// @Security ApiKeyAuth
+// @Router /user/{id}/follow [put]
 func (u *User) FollowUserHandler(w http.ResponseWriter, r *http.Request) {
 	followedUser := GetUserFromContext(r)
 
@@ -56,6 +83,19 @@ func (u *User) FollowUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// UnfollowUserHandler gdoc
+//
+//	@Summary		Unfollow a user
+//	@Description	Unfollow a user by ID
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			userID	path		int		true	"id"
+//	@Success		204		{string}	string	"User unfollowed"
+//	@Failure		400		{object}	error	"User payload missing"
+//	@Failure		404		{object}	error	"User not found"
+//	@Security		ApiKeyAuth
+//	@Router			/user/{id}/unfollow [put]
 func (u *User) UnfollowUserHandler(w http.ResponseWriter, r *http.Request) {
 	unfollowedUser := GetUserFromContext(r)
 

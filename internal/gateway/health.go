@@ -7,6 +7,14 @@ import (
 
 const version = "0.0.1"
 
+//	 healthCheckHandler godoc
+//
+//		@Summary		Healthcheck
+//		@Description	Healthcheck endpoint
+//		@Tags			ops
+//		@Produce		json
+//		@Success		200	{object}	string	"ok"
+//		@Router			/health [get]
 func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	data := map[string]string{
 		"status":  "ok",

@@ -30,6 +30,20 @@ type updatePayload struct {
 	Content *string `json:"content" validate:"omitempty,max=1000"`
 }
 
+// CreatePost godoc
+//
+//	@Summary		Creates a post
+//	@Description	Creates a post
+//	@Tags			posts
+//	@Accept			json
+//	@Produce		json
+//	@Param			payload	body		postPayload	true	"Post payload"
+//	@Success		201		{object}	service_modles.Post
+//	@Failure		400		{object}	error
+//	@Failure		401		{object}	error
+//	@Failure		500		{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/post [post]
 func (p *Posts) CreatePost(w http.ResponseWriter, r *http.Request) {
 	var payload postPayload
 	if err := readJSON(w, r, &payload); err != nil {
@@ -62,6 +76,19 @@ func (p *Posts) CreatePost(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetPost godoc
+//
+//	@Summary		Fetches a post
+//	@Description	Fetches a post by ID
+//	@Tags			posts
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		int	true	"id"
+//	@Success		200	{object}	service_modles.Post
+//	@Failure		404	{object}	error
+//	@Failure		500	{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/post/{id} [get]
 func (p *Posts) GetPost(w http.ResponseWriter, r *http.Request) {
 	post := p.GetPostFromCTX(r)
 
@@ -79,6 +106,19 @@ func (p *Posts) GetPost(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// DeletePost godoc
+//
+//	@Summary		Deletes a post
+//	@Description	Delete a post by ID
+//	@Tags			posts
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		int	true	"id"
+//	@Success		204	{object} string
+//	@Failure		404	{object}	error
+//	@Failure		500	{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/post/{id} [delete]
 func (p *Posts) DeletePost(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	if err != nil {
@@ -99,6 +139,22 @@ func (p *Posts) DeletePost(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// UpdatePost godoc
+//
+//	@Summary		Updates a post
+//	@Description	Updates a post by ID
+//	@Tags			posts
+//	@Accept			json
+//	@Produce		json
+//	@Param			id		path		int					true	"id"
+//	@Param			payload	body		updatePayload	true	"Update payload"
+//	@Success		200		{object}	service_modles.Post
+//	@Failure		400		{object}	error
+//	@Failure		401		{object}	error
+//	@Failure		404		{object}	error
+//	@Failure		500		{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/post/{id} [patch]
 func (p *Posts) UpdatePost(w http.ResponseWriter, r *http.Request) {
 	post := p.GetPostFromCTX(r)
 

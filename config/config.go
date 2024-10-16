@@ -26,6 +26,11 @@ type QueryTimeOut struct {
 type General struct {
 	Listen   string `mapstructure:"listen"` // rest listen port
 	LogLevel int8   `mapstructure:"log_level"`
+	APIURL   APIURL `mapstructure:"api_url"`
+}
+
+type APIURL struct {
+	APIURLSwag string `mapstructure:"api_url_swag"`
 }
 
 type Database struct {

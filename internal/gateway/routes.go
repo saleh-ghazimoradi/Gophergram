@@ -1,7 +1,10 @@
 package gateway
 
 import (
+	"fmt"
 	"github.com/justinas/alice"
+	"github.com/saleh-ghazimoradi/Gophergram/config"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
 	"net/http"
 )
 
@@ -27,6 +30,10 @@ func Routes(handler Handlers) http.Handler {
 	standard := alice.New(recoverPanic, logRequest, commonHeaders)
 	postChain := alice.New(handler.PostsContextMiddleware)
 	userChain := alice.New(handler.UsersContextMiddleware)
+
+	docsURL := fmt.Sprintf("%s/swagger/doc.json", config.AppConfig.General.Listen)
+
+	mux.Handle("/swagger/", http.StripPrefix("/swagger/", httpSwagger.Handler(httpSwagger.URL(docsURL))))
 
 	mux.HandleFunc("GET /v1/health", healthCheckHandler)
 	mux.Handle("POST /v1/post", handler.CreatePostHandler)
