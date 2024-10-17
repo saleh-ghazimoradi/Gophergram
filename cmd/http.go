@@ -53,11 +53,12 @@ var httpCmd = &cobra.Command{
 		commentService := service.NewCommentService(commentDB)
 		userService := service.NewServiceUser(userDB)
 		followService := service.NewFollowService(followDB)
+		mailerService := service.NewSendGridMailer(config.AppConfig.General.Mail.SendGrid.ApiKey, config.AppConfig.General.Mail.SendGrid.FromEmail)
 		/*-------------------handler----------------------*/
 		postHandler := gateway.NewPostHandler(postService, commentService)
 		userHandler := gateway.NewUserHandler(userService, followService)
 		feedHandler := gateway.NewFeedHandler(postService)
-		authHandler := gateway.NewAuth(userService)
+		authHandler := gateway.NewAuth(userService, mailerService)
 
 		routeHandlers := gateway.Handlers{
 			CreatePostHandler:      postHandler.CreatePost,

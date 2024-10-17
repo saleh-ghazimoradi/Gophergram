@@ -13,6 +13,7 @@ type Users interface {
 	GetByID(ctx context.Context, id int64) (*service_modles.Users, error)
 	CreateAndInvite(ctx context.Context, user *service_modles.Users, token string, exp time.Duration) error
 	ActivateUser(ctx context.Context, token string) error
+	Delete(ctx context.Context, id int64) error
 }
 
 type userService struct {
@@ -109,6 +110,31 @@ func (u *userService) ActivateUser(ctx context.Context, token string) error {
 	if err := u.userRepo.DeleteUserInvitation(ctx, tx, user.ID); err != nil {
 		return err
 	}
+	return nil
+}
+
+func (u *userService) Delete(ctx context.Context, id int64) error {
+	tx, err := u.userRepo.BeginTx(ctx)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			err = tx.Commit()
+		}
+	}()
+
+	if err := u.userRepo.Delete(ctx, tx, id); err != nil {
+		return err
+	}
+
+	if err := u.userRepo.DeleteUserInvitation(ctx, tx, id); err != nil {
+		return err
+	}
+
 	return nil
 }
 

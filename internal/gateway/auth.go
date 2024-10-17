@@ -3,11 +3,13 @@ package gateway
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/saleh-ghazimoradi/Gophergram/config"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/repository"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/service"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/service/service_modles"
+	"github.com/saleh-ghazimoradi/Gophergram/logger"
 	"net/http"
 )
 
@@ -18,6 +20,7 @@ type UserWithToken struct {
 
 type Auth struct {
 	userService service.Users
+	mailService service.Mailer
 }
 
 // RegisterUserHandler godoc
@@ -78,11 +81,35 @@ func (a *Auth) RegisterUserHandler(w http.ResponseWriter, r *http.Request) {
 		Token: plainToken,
 	}
 
+	activationURL := fmt.Sprintf("%s/confirm/%s", config.AppConfig.General.FrontendURL, plainToken)
+	isProdEnv := config.AppConfig.Env.Env == "production"
+	vars := struct {
+		Username      string
+		ActivationURL string
+	}{
+		Username:      user.Username,
+		ActivationURL: activationURL,
+	}
+
+	status, err := a.mailService.Send(service.UserWelcomeTemplate, user.Username, user.Email, vars, !isProdEnv)
+	if err != nil {
+		logger.Logger.Errorw("error sending welcome email", "error", err)
+
+		// rollback user creation if email fails (SAGA pattern)
+		if err := a.userService.Delete(ctx, user.ID); err != nil {
+			logger.Logger.Errorw("error deleting user", "error", err)
+		}
+		internalServerError(w, r, err)
+		return
+	}
+
+	logger.Logger.Infow("Email sent", "status code", status)
+
 	if err := jsonResponse(w, http.StatusCreated, userWithToken); err != nil {
 		internalServerError(w, r, err)
 	}
 }
 
-func NewAuth(userService service.Users) *Auth {
-	return &Auth{userService: userService}
+func NewAuth(userService service.Users, mailerService service.Mailer) *Auth {
+	return &Auth{userService: userService, mailService: mailerService}
 }

@@ -24,14 +24,25 @@ type QueryTimeOut struct {
 }
 
 type General struct {
-	Listen   string     `mapstructure:"listen"` // rest listen port
-	LogLevel int8       `mapstructure:"log_level"`
-	APIURL   APIURL     `mapstructure:"api_url"`
-	Mail     MailConfig `mapstructure:"mail"`
+	Listen      string      `mapstructure:"listen"` // rest listen port
+	LogLevel    int8        `mapstructure:"log_level"`
+	APIURL      APIURL      `mapstructure:"api_url"`
+	Mail        MailConfig  `mapstructure:"mail"`
+	FrontendURL FrontendURL `mapstructure:"frontend_url"`
 }
 
 type MailConfig struct {
-	Exp time.Duration `mapstructure:"exp"`
+	SendGrid SendGridConfig `mapstructure:"sendgrid"`
+	Exp      time.Duration  `mapstructure:"exp"`
+}
+
+type SendGridConfig struct {
+	ApiKey    string `mapstructure:"api_key"`
+	FromEmail string `mapstructure:"from_email"`
+}
+
+type FrontendURL struct {
+	Frontend string `mapstructure:"frontend"`
 }
 
 type APIURL struct {

@@ -17,6 +17,7 @@ type Users interface {
 	GetUserFromInvitation(ctx context.Context, tx *sql.Tx, token string) (*service_modles.Users, error)
 	UpdateUserInvitation(ctx context.Context, tx *sql.Tx, user *service_modles.Users) error
 	DeleteUserInvitation(ctx context.Context, tx *sql.Tx, id int64) error
+	Delete(ctx context.Context, tx *sql.Tx, id int64) error
 	BeginTx(ctx context.Context) (*sql.Tx, error)
 }
 
@@ -122,6 +123,18 @@ func (u *userRepository) UpdateUserInvitation(ctx context.Context, tx *sql.Tx, u
 
 func (u *userRepository) DeleteUserInvitation(ctx context.Context, tx *sql.Tx, id int64) error {
 	query := `DELETE FROM user_invitation WHERE user_id = $1`
+	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.QueryTimeOut.Timeout)
+	defer cancel()
+	_, err := tx.ExecContext(ctx, query, id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (u *userRepository) Delete(ctx context.Context, tx *sql.Tx, id int64) error {
+	query := `DELETE FROM users WHERE id = $1`
+
 	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.QueryTimeOut.Timeout)
 	defer cancel()
 	_, err := tx.ExecContext(ctx, query, id)
