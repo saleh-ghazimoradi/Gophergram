@@ -18,6 +18,7 @@ type Users interface {
 	UpdateUserInvitation(ctx context.Context, tx *sql.Tx, user *service_modles.Users) error
 	DeleteUserInvitation(ctx context.Context, tx *sql.Tx, id int64) error
 	Delete(ctx context.Context, tx *sql.Tx, id int64) error
+	GetByEmail(ctx context.Context, tx *sql.Tx, email string) (*service_modles.Users, error)
 	BeginTx(ctx context.Context) (*sql.Tx, error)
 }
 
@@ -51,7 +52,7 @@ func (u *userRepository) Create(ctx context.Context, tx *sql.Tx, user *service_m
 }
 
 func (u *userRepository) GetByID(ctx context.Context, tx *sql.Tx, id int64) (*service_modles.Users, error) {
-	query := `SELECT id, username, email, password, created_at FROM users WHERE id = $1`
+	query := `SELECT id, username, email, password, created_at FROM users WHERE id = $1 AND is_active = true`
 	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.QueryTimeOut.Timeout)
 	defer cancel()
 	var user service_modles.Users
@@ -142,6 +143,29 @@ func (u *userRepository) Delete(ctx context.Context, tx *sql.Tx, id int64) error
 		return err
 	}
 	return nil
+}
+
+func (u *userRepository) GetByEmail(ctx context.Context, tx *sql.Tx, email string) (*service_modles.Users, error) {
+	query := `SELECT id, username, email, password, created_at FROM users WHERE email = $1 AND is_active = true`
+	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.QueryTimeOut.Timeout)
+	defer cancel()
+	user := &service_modles.Users{}
+	err := tx.QueryRowContext(ctx, query, email).Scan(
+		&user.ID,
+		&user.Username,
+		&user.Email,
+		&user.Password.Hash,
+		&user.CreatedAt,
+	)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return nil, ErrNotFound
+		default:
+			return nil, err
+		}
+	}
+	return user, nil
 }
 
 func NewUserRepository(db *sql.DB) Users {

@@ -22,6 +22,7 @@ type Handlers struct {
 	UnfollowUserHandler    http.HandlerFunc
 	RegisterUserHandler    http.HandlerFunc
 	ActivateUserHandler    http.HandlerFunc
+	CreateTokenHandler     http.HandlerFunc
 	PostsContextMiddleware func(http.Handler) http.Handler
 	UsersContextMiddleware func(http.Handler) http.Handler
 }
@@ -32,11 +33,12 @@ func Routes(handler Handlers) http.Handler {
 	standard := alice.New(recoverPanic, logRequest, commonHeaders)
 	postChain := alice.New(handler.PostsContextMiddleware)
 	userChain := alice.New(handler.UsersContextMiddleware)
+	authChain := alice.New(basicAuthentication())
 
 	docsURL := fmt.Sprintf("%s/swagger/doc.json", config.AppConfig.General.Listen)
 	mux.Handle("/swagger/", http.StripPrefix("/swagger/", httpSwagger.Handler(httpSwagger.URL(docsURL))))
 
-	mux.HandleFunc("GET /v1/health", healthCheckHandler)
+	mux.Handle("/v1/health", authChain.Then(http.HandlerFunc(healthCheckHandler)))
 	mux.Handle("POST /v1/post", handler.CreatePostHandler)
 	mux.Handle("GET /v1/post/{id}", postChain.Then(handler.GetPostHandler))
 	mux.Handle("DELETE /v1/post/{id}", postChain.Then(handler.DeletePostHandler))
@@ -46,6 +48,7 @@ func Routes(handler Handlers) http.Handler {
 	mux.Handle("PUT /v1/user/{id}/unfollow", userChain.Then(handler.UnfollowUserHandler))
 	mux.Handle("GET /v1/user/feed", handler.GetUserFeedHandler)
 	mux.Handle("POST /v1/authentication/user", handler.RegisterUserHandler)
+	mux.Handle("POST /v1/authentication/token", handler.CreateTokenHandler)
 
 	// Modified the activate route to be more distinct
 	mux.Handle("PUT /v1/activate/{token}", handler.ActivateUserHandler)

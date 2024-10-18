@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/saleh-ghazimoradi/Gophergram/config"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/repository"
@@ -11,6 +12,7 @@ import (
 	"github.com/saleh-ghazimoradi/Gophergram/internal/service/service_modles"
 	"github.com/saleh-ghazimoradi/Gophergram/logger"
 	"net/http"
+	"time"
 )
 
 type UserWithToken struct {
@@ -18,9 +20,15 @@ type UserWithToken struct {
 	Token string `json:"token"`
 }
 
+type CreateUserTokenPayload struct {
+	Email    string `json:"email" validate:"required,email,max=255"`
+	Password string `json:"password" validate:"required,min=2,max=72"`
+}
+
 type Auth struct {
-	userService service.Users
-	mailService service.Mailer
+	userService   service.Users
+	mailService   service.Mailer
+	authenticator service.Authenticator
 }
 
 // RegisterUserHandler godoc
@@ -110,6 +118,61 @@ func (a *Auth) RegisterUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func NewAuth(userService service.Users, mailerService service.Mailer) *Auth {
-	return &Auth{userService: userService, mailService: mailerService}
+// CreateTokenHandler godoc
+//
+// @Summary Creates a token
+// @Description Creates a token for a user
+// @Tags authentication
+// @Accept json
+// @Produce json
+// @Param payload body CreateUserTokenPayload true "User credentials"
+// @Success 200 {object} string 	"Token"
+// @Failure 400 {object} error
+// @Failure 401 {object} error
+// @Failure 500 {object} error
+// @Router /authentication/token [post]
+func (a *Auth) CreateTokenHandler(w http.ResponseWriter, r *http.Request) {
+	var payload CreateUserTokenPayload
+	if err := readJSON(w, r, &payload); err != nil {
+		badRequestResponse(w, r, err)
+		return
+	}
+
+	if err := Validate.Struct(payload); err != nil {
+		badRequestResponse(w, r, err)
+		return
+	}
+
+	user, err := a.userService.GetByEmail(r.Context(), payload.Email)
+	if err != nil {
+		switch err {
+		case repository.ErrNotFound:
+			unauthorizedBasicErrorResponse(w, r, err)
+		default:
+			internalServerError(w, r, err)
+		}
+		return
+	}
+
+	claims := jwt.MapClaims{
+		"sub": user.ID,
+		"exp": time.Now().Add(config.AppConfig.General.Auth.Token.Exp).Unix(),
+		"iat": time.Now().Unix(),
+		"nbf": time.Now().Unix(),
+		"iss": config.AppConfig.General.Auth.Token.TokenHost,
+		"aud": config.AppConfig.General.Auth.Token.TokenHost,
+	}
+	token, err := a.authenticator.GenerateToken(claims)
+	if err != nil {
+		internalServerError(w, r, err)
+		return
+	}
+
+	if err := jsonResponse(w, http.StatusCreated, token); err != nil {
+		internalServerError(w, r, err)
+	}
+}
+
+func NewAuth(userService service.Users, mailerService service.Mailer, authService service.Authenticator) *Auth {
+	return &Auth{userService: userService, mailService: mailerService, authenticator: authService}
 }

@@ -54,11 +54,12 @@ var httpCmd = &cobra.Command{
 		userService := service.NewServiceUser(userDB)
 		followService := service.NewFollowService(followDB)
 		mailerService := service.NewSendGridMailer(config.AppConfig.General.Mail.SendGrid.ApiKey, config.AppConfig.General.Mail.SendGrid.FromEmail)
+		jwtAuthentication := service.NewJWTAuthenticator(config.AppConfig.General.Auth.Token.Secret, config.AppConfig.General.Auth.Token.TokenHost, config.AppConfig.General.Auth.Token.TokenHost)
 		/*-------------------handler----------------------*/
 		postHandler := gateway.NewPostHandler(postService, commentService)
 		userHandler := gateway.NewUserHandler(userService, followService)
 		feedHandler := gateway.NewFeedHandler(postService)
-		authHandler := gateway.NewAuth(userService, mailerService)
+		authHandler := gateway.NewAuth(userService, mailerService, jwtAuthentication)
 
 		routeHandlers := gateway.Handlers{
 			CreatePostHandler:      postHandler.CreatePost,
@@ -71,6 +72,7 @@ var httpCmd = &cobra.Command{
 			GetUserFeedHandler:     feedHandler.GetUserFeedHandler,
 			RegisterUserHandler:    authHandler.RegisterUserHandler,
 			ActivateUserHandler:    userHandler.ActivateUserHandler,
+			CreateTokenHandler:     authHandler.CreateTokenHandler,
 			PostsContextMiddleware: postHandler.PostsContextMiddleware,
 			UsersContextMiddleware: userHandler.UserContextMiddleware,
 		}

@@ -29,6 +29,23 @@ type General struct {
 	APIURL      APIURL      `mapstructure:"api_url"`
 	Mail        MailConfig  `mapstructure:"mail"`
 	FrontendURL FrontendURL `mapstructure:"frontend_url"`
+	Auth        Auth        `mapstructure:"auth"`
+}
+
+type Auth struct {
+	Basic Basic       `mapstructure:"basic"`
+	Token TokenConfig `mapstructure:"token"`
+}
+
+type TokenConfig struct {
+	Secret    string        `mapstructure:"secret"`
+	Exp       time.Duration `mapstructure:"exp"`
+	TokenHost string        `mapstructure:"token_host"`
+}
+
+type Basic struct {
+	User string `mapstructure:"user"`
+	Pass string `mapstructure:"pass"`
 }
 
 type MailConfig struct {

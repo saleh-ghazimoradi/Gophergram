@@ -14,6 +14,7 @@ type Users interface {
 	CreateAndInvite(ctx context.Context, user *service_modles.Users, token string, exp time.Duration) error
 	ActivateUser(ctx context.Context, token string) error
 	Delete(ctx context.Context, id int64) error
+	GetByEmail(ctx context.Context, email string) (*service_modles.Users, error)
 }
 
 type userService struct {
@@ -136,6 +137,25 @@ func (u *userService) Delete(ctx context.Context, id int64) error {
 	}
 
 	return nil
+}
+
+func (u *userService) GetByEmail(ctx context.Context, email string) (*service_modles.Users, error) {
+	tx, err := u.userRepo.BeginTx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			err = tx.Commit()
+		}
+	}()
+	user, err := u.userRepo.GetByEmail(ctx, tx, email)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
 }
 
 func NewServiceUser(repo repository.Users) Users {
