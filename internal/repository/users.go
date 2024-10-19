@@ -56,7 +56,7 @@ func (u *userRepository) GetByID(ctx context.Context, tx *sql.Tx, id int64) (*se
 	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.QueryTimeOut.Timeout)
 	defer cancel()
 	var user service_modles.Users
-	err := tx.QueryRowContext(ctx, query, id).Scan(&user.ID, &user.Username, &user.Email, &user.Password, &user.CreatedAt)
+	err := tx.QueryRowContext(ctx, query, id).Scan(&user.ID, &user.Username, &user.Email, &user.Password.Hash, &user.CreatedAt)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:

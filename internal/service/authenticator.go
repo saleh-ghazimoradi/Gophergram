@@ -1,10 +1,13 @@
 package service
 
-import "github.com/golang-jwt/jwt/v5"
+import (
+	"fmt"
+	"github.com/golang-jwt/jwt/v5"
+)
 
 type Authenticator interface {
 	GenerateToken(claims jwt.Claims) (string, error)
-	ValidateToken(token string) (*jwt.Claims, error)
+	ValidateToken(token string) (*jwt.Token, error)
 }
 
 type JWTAuthenticator struct {
@@ -22,8 +25,18 @@ func (j *JWTAuthenticator) GenerateToken(claims jwt.Claims) (string, error) {
 	return tokenString, nil
 }
 
-func (j *JWTAuthenticator) ValidateToken(token string) (*jwt.Claims, error) {
-	return nil, nil
+func (j *JWTAuthenticator) ValidateToken(token string) (*jwt.Token, error) {
+	return jwt.Parse(token, func(t *jwt.Token) (any, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
+		}
+		return []byte(j.secret), nil
+	},
+		jwt.WithExpirationRequired(),
+		jwt.WithAudience(j.aud),
+		jwt.WithIssuer(j.aud),
+		jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Name}),
+	)
 }
 
 func NewJWTAuthenticator(secret, aud, iss string) Authenticator {

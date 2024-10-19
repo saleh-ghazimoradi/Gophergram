@@ -18,10 +18,6 @@ type User struct {
 	followService service.Follow
 }
 
-type FollowUser struct {
-	UserID int64 `json:"user_id"`
-}
-
 // GetUserByID godoc
 //
 // @Summary Fetches a user profile
@@ -58,15 +54,14 @@ func (u *User) GetUserByID(w http.ResponseWriter, r *http.Request) {
 // @Router /user/{id}/follow [put]
 func (u *User) FollowUserHandler(w http.ResponseWriter, r *http.Request) {
 	followedUser := GetUserFromContext(r)
-
-	var payload FollowUser
-	if err := readJSON(w, r, &payload); err != nil {
+	followedID, err := strconv.ParseInt(r.URL.Query().Get("id"), 10, 64)
+	if err != nil {
 		badRequestResponse(w, r, err)
 	}
 
 	ctx := r.Context()
 
-	if err := u.followService.Follow(ctx, followedUser.ID, payload.UserID); err != nil {
+	if err := u.followService.Follow(ctx, followedUser.ID, followedID); err != nil {
 		switch err {
 		case repository.ErrConflict:
 			conflictResponse(w, r, err)
@@ -98,15 +93,14 @@ func (u *User) FollowUserHandler(w http.ResponseWriter, r *http.Request) {
 //	@Router			/user/{id}/unfollow [put]
 func (u *User) UnfollowUserHandler(w http.ResponseWriter, r *http.Request) {
 	unfollowedUser := GetUserFromContext(r)
-
-	var payload FollowUser
-	if err := readJSON(w, r, &payload); err != nil {
+	followedID, err := strconv.ParseInt(r.URL.Query().Get("id"), 10, 64)
+	if err != nil {
 		badRequestResponse(w, r, err)
-		return
 	}
+
 	ctx := r.Context()
 
-	if err := u.followService.Unfollow(ctx, unfollowedUser.ID, payload.UserID); err != nil {
+	if err := u.followService.Unfollow(ctx, unfollowedUser.ID, followedID); err != nil {
 		internalServerError(w, r, err)
 		return
 	}

@@ -60,6 +60,7 @@ var httpCmd = &cobra.Command{
 		userHandler := gateway.NewUserHandler(userService, followService)
 		feedHandler := gateway.NewFeedHandler(postService)
 		authHandler := gateway.NewAuth(userService, mailerService, jwtAuthentication)
+		authMiddleware := gateway.NewMiddleware(userService, jwtAuthentication)
 
 		routeHandlers := gateway.Handlers{
 			CreatePostHandler:      postHandler.CreatePost,
@@ -74,7 +75,7 @@ var httpCmd = &cobra.Command{
 			ActivateUserHandler:    userHandler.ActivateUserHandler,
 			CreateTokenHandler:     authHandler.CreateTokenHandler,
 			PostsContextMiddleware: postHandler.PostsContextMiddleware,
-			UsersContextMiddleware: userHandler.UserContextMiddleware,
+			AuthTokenMiddleware:    authMiddleware.AuthToken,
 		}
 
 		if err := gateway.Server(gateway.Routes(routeHandlers)); err != nil {

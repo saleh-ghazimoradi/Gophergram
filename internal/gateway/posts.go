@@ -56,11 +56,13 @@ func (p *Posts) CreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	user := GetUserFromContext(r)
+
 	post := &service_modles.Post{
 		Title:   payload.Title,
 		Content: payload.Content,
 		Tags:    payload.Tags,
-		UserID:  1,
+		UserID:  user.ID,
 	}
 
 	ctx := r.Context()

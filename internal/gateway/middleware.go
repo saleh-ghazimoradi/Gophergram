@@ -1,13 +1,22 @@
 package gateway
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/saleh-ghazimoradi/Gophergram/config"
+	"github.com/saleh-ghazimoradi/Gophergram/internal/service"
 	"github.com/saleh-ghazimoradi/Gophergram/logger"
 	"net/http"
+	"strconv"
 	"strings"
 )
+
+type middlewares struct {
+	userService service.Users
+	authService service.Authenticator
+}
 
 func commonHeaders(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -84,4 +93,48 @@ func basicAuthentication() func(http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 		})
 	}
+}
+
+func (m *middlewares) AuthToken(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authHeader := r.Header.Get("Authorization")
+		if authHeader == "" {
+			unauthorizedErrorResponse(w, r, fmt.Errorf("authorization token missing"))
+			return
+		}
+
+		parts := strings.Split(authHeader, " ")
+		if len(parts) != 2 || parts[0] != "Bearer" {
+			unauthorizedErrorResponse(w, r, fmt.Errorf("authorization header is malformed"))
+			return
+		}
+
+		token := parts[1]
+
+		jwtToken, err := m.authService.ValidateToken(token)
+		if err != nil {
+			unauthorizedErrorResponse(w, r, err)
+			return
+		}
+		claims := jwtToken.Claims.(jwt.MapClaims)
+		id, err := strconv.ParseInt(fmt.Sprintf("%.f", claims["sub"]), 10, 64)
+		if err != nil {
+			unauthorizedErrorResponse(w, r, err)
+			return
+		}
+
+		ctx := r.Context()
+
+		user, err := m.userService.GetByID(ctx, id)
+		if err != nil {
+			unauthorizedErrorResponse(w, r, err)
+			return
+		}
+		ctx = context.WithValue(ctx, userCtx, user)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func NewMiddleware(userService service.Users, authService service.Authenticator) *middlewares {
+	return &middlewares{userService: userService, authService: authService}
 }
