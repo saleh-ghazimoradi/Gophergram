@@ -131,10 +131,12 @@ func (s *seederService) SeedDatabase(ctx context.Context, db *sql.DB) error {
 
 func generateUsers(num int) []*service_modles.Users {
 	users := make([]*service_modles.Users, num)
+
 	for i := 0; i < num; i++ {
 		users[i] = &service_modles.Users{
 			Username: usernames[i%len(usernames)] + fmt.Sprintf("%d", i),
 			Email:    usernames[i%len(usernames)] + fmt.Sprintf("%d", i) + "@example.com",
+			RoleID:   1,
 		}
 	}
 	return users
