@@ -35,3 +35,8 @@ func unauthorizedBasicErrorResponse(w http.ResponseWriter, r *http.Request, err 
 	w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
 	writeJSONError(w, http.StatusUnauthorized, "unauthorized")
 }
+
+func forbiddenResponse(w http.ResponseWriter, r *http.Request) {
+	logger.Logger.Warnw("forbidden", "method", r.Method, "path", r.URL.Path, "error")
+	writeJSONError(w, http.StatusForbidden, "forbidden")
+}

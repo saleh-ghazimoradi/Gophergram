@@ -31,12 +31,17 @@ func (u *userRepository) BeginTx(ctx context.Context) (*sql.Tx, error) {
 }
 
 func (u *userRepository) Create(ctx context.Context, tx *sql.Tx, user *service_modles.Users) error {
-	query := `INSERT INTO users(username,password, email) VALUES ($1, $2, $3) RETURNING id, created_at`
+	query := `INSERT INTO users(username,password, email, role_id) VALUES ($1, $2, $3, (SELECT id FROM roles WHERE name = $4)) RETURNING id, created_at`
 
 	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.QueryTimeOut.Timeout)
 	defer cancel()
 
-	err := tx.QueryRowContext(ctx, query, user.Username, user.Password.Hash, user.Email).Scan(&user.ID, &user.CreatedAt)
+	role := user.Role.Name
+	if role == "" {
+		role = "user"
+	}
+
+	err := tx.QueryRowContext(ctx, query, user.Username, user.Password.Hash, user.Email, role).Scan(&user.ID, &user.CreatedAt)
 	if err != nil {
 		switch {
 		case err.Error() == `pq: duplicate key value violates unique constraint "users_email_key"`:
@@ -52,11 +57,15 @@ func (u *userRepository) Create(ctx context.Context, tx *sql.Tx, user *service_m
 }
 
 func (u *userRepository) GetByID(ctx context.Context, tx *sql.Tx, id int64) (*service_modles.Users, error) {
-	query := `SELECT id, username, email, password, created_at FROM users WHERE id = $1 AND is_active = true`
+	query := `SELECT users.id, username, email, password, created_at, roles.*
+		FROM users
+		JOIN roles ON (users.role_id = roles.id)
+		WHERE users.id = $1 AND is_active = true`
+
 	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.QueryTimeOut.Timeout)
 	defer cancel()
 	var user service_modles.Users
-	err := tx.QueryRowContext(ctx, query, id).Scan(&user.ID, &user.Username, &user.Email, &user.Password.Hash, &user.CreatedAt)
+	err := tx.QueryRowContext(ctx, query, id).Scan(&user.ID, &user.Username, &user.Email, &user.Password.Hash, &user.CreatedAt, &user.Role.ID, &user.Role.Name, &user.Role.Level, &user.Role.Description)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:

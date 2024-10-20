@@ -92,7 +92,7 @@ func (p *Posts) CreatePost(w http.ResponseWriter, r *http.Request) {
 //	@Security		ApiKeyAuth
 //	@Router			/post/{id} [get]
 func (p *Posts) GetPost(w http.ResponseWriter, r *http.Request) {
-	post := p.GetPostFromCTX(r)
+	post := GetPostFromCTX(r)
 
 	comments, err := p.commentService.GetByPostID(r.Context(), post.ID)
 	if err != nil {
@@ -158,7 +158,7 @@ func (p *Posts) DeletePost(w http.ResponseWriter, r *http.Request) {
 //	@Security		ApiKeyAuth
 //	@Router			/post/{id} [patch]
 func (p *Posts) UpdatePost(w http.ResponseWriter, r *http.Request) {
-	post := p.GetPostFromCTX(r)
+	post := GetPostFromCTX(r)
 
 	var payload updatePayload
 	if err := readJSON(w, r, &payload); err != nil {
@@ -215,7 +215,7 @@ func (p *Posts) PostsContextMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func (p *Posts) GetPostFromCTX(r *http.Request) *service_modles.Post {
+func GetPostFromCTX(r *http.Request) *service_modles.Post {
 	post, _ := r.Context().Value(postCtx).(*service_modles.Post)
 	return post
 }

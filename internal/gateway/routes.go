@@ -8,6 +8,8 @@ import (
 	"net/http"
 )
 
+type CheckOwnershipFunc func(requiredRole string, next http.HandlerFunc) http.HandlerFunc
+
 type Handlers struct {
 	CreatePostHandler      http.HandlerFunc
 	UpdatePostHandler      http.HandlerFunc
@@ -25,6 +27,7 @@ type Handlers struct {
 	CreateTokenHandler     http.HandlerFunc
 	PostsContextMiddleware func(http.Handler) http.Handler
 	AuthTokenMiddleware    func(http.Handler) http.Handler
+	CheckPostOwnership     CheckOwnershipFunc
 }
 
 func Routes(handler Handlers) http.Handler {
@@ -41,8 +44,8 @@ func Routes(handler Handlers) http.Handler {
 	mux.Handle("/v1/health", authChain.Then(http.HandlerFunc(healthCheckHandler)))
 	mux.Handle("POST /v1/post", authTokenChain.Then(handler.CreatePostHandler))
 	mux.Handle("GET /v1/post/{id}", authTokenChain.Then(postChain.Then(handler.GetPostHandler)))
-	mux.Handle("DELETE /v1/post/{id}", authTokenChain.Then(postChain.Then(handler.DeletePostHandler)))
-	mux.Handle("PATCH /v1/post/{id}", authTokenChain.Then(postChain.Then(handler.UpdatePostHandler)))
+	mux.Handle("DELETE /v1/post/{id}", authTokenChain.Then(postChain.Then(handler.CheckPostOwnership("admin", handler.DeletePostHandler))))
+	mux.Handle("PATCH /v1/post/{id}", authTokenChain.Then(postChain.Then(handler.CheckPostOwnership("moderator", handler.UpdatePostHandler))))
 	mux.Handle("GET /v1/user/{id}", authTokenChain.Then(handler.GetUserHandler))
 	mux.Handle("PUT /v1/user/{id}/follow", authTokenChain.Then(handler.FollowUserHandler))
 	mux.Handle("PUT /v1/user/{id}/unfollow", authTokenChain.Then(handler.UnfollowUserHandler))
@@ -50,7 +53,6 @@ func Routes(handler Handlers) http.Handler {
 	mux.Handle("POST /v1/authentication/user", handler.RegisterUserHandler)
 	mux.Handle("POST /v1/authentication/token", handler.CreateTokenHandler)
 
-	// Modified the activate route to be more distinct
 	mux.Handle("PUT /v1/activate/{token}", handler.ActivateUserHandler)
 
 	return standard.Then(mux)

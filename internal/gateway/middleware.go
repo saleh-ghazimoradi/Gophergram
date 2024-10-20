@@ -7,6 +7,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/saleh-ghazimoradi/Gophergram/config"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/service"
+	"github.com/saleh-ghazimoradi/Gophergram/internal/service/service_modles"
 	"github.com/saleh-ghazimoradi/Gophergram/logger"
 	"net/http"
 	"strconv"
@@ -16,6 +17,8 @@ import (
 type middlewares struct {
 	userService service.Users
 	authService service.Authenticator
+	postService service.Posts
+	roleService service.Roles
 }
 
 func commonHeaders(next http.Handler) http.Handler {
@@ -135,6 +138,39 @@ func (m *middlewares) AuthToken(next http.Handler) http.Handler {
 	})
 }
 
-func NewMiddleware(userService service.Users, authService service.Authenticator) *middlewares {
-	return &middlewares{userService: userService, authService: authService}
+func (m *middlewares) CheckPostOwnership(requiredRole string, next http.HandlerFunc) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user := GetUserFromContext(r)
+		post := GetPostFromCTX(r)
+
+		if post.UserID == user.ID {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		allowed, err := m.checkRolePrecedence(r.Context(), user, requiredRole)
+		if err != nil {
+			internalServerError(w, r, err)
+			return
+		}
+
+		if !allowed {
+			forbiddenResponse(w, r)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (m *middlewares) checkRolePrecedence(ctx context.Context, user *service_modles.Users, roleName string) (bool, error) {
+	role, err := m.roleService.GetByName(ctx, roleName)
+	if err != nil {
+		return false, err
+	}
+	return user.Role.Level >= role.Level, nil
+}
+
+func NewMiddleware(userService service.Users, authService service.Authenticator, postService service.Posts, roleService service.Roles) *middlewares {
+	return &middlewares{userService: userService, authService: authService, postService: postService, roleService: roleService}
 }

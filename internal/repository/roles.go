@@ -15,6 +15,10 @@ type roleRepo struct {
 	db *sql.DB
 }
 
+func (r *roleRepo) BeginTx(ctx context.Context) (*sql.Tx, error) {
+	return r.db.BeginTx(ctx, nil)
+}
+
 func (r *roleRepo) GetByName(ctx context.Context, tx *sql.Tx, name string) (*service_modles.Roles, error) {
 	query := `SELECT id, name, description, level FROM roles WHERE name = $1`
 
@@ -27,7 +31,7 @@ func (r *roleRepo) GetByName(ctx context.Context, tx *sql.Tx, name string) (*ser
 	return role, nil
 }
 
-func NewRoleRepo(db *sql.DB) Roles {
+func NewRoleRepository(db *sql.DB) Roles {
 	return &roleRepo{
 		db: db,
 	}

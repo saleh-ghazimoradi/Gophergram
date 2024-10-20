@@ -12,6 +12,8 @@ type Users struct {
 	Password  Password  `json:"-"`
 	CreatedAt time.Time `json:"create_at"`
 	IsActive  bool      `json:"is_active"`
+	RoleID    int64     `json:"role_id"`
+	Role      Roles     `json:"role"`
 }
 
 type Password struct {

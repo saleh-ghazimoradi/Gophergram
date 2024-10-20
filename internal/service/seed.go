@@ -136,7 +136,9 @@ func generateUsers(num int) []*service_modles.Users {
 		users[i] = &service_modles.Users{
 			Username: usernames[i%len(usernames)] + fmt.Sprintf("%d", i),
 			Email:    usernames[i%len(usernames)] + fmt.Sprintf("%d", i) + "@example.com",
-			RoleID:   1,
+			Role: service_modles.Roles{
+				Name: "user",
+			},
 		}
 	}
 	return users

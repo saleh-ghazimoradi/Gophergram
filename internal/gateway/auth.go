@@ -57,6 +57,9 @@ func (a *Auth) RegisterUserHandler(w http.ResponseWriter, r *http.Request) {
 	user := &service_modles.Users{
 		Username: payload.Username,
 		Email:    payload.Email,
+		Role: service_modles.Roles{
+			Name: "user",
+		},
 	}
 
 	if err := user.Password.Set(payload.Password); err != nil {
