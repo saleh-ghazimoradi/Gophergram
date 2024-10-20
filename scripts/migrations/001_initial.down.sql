@@ -17,3 +17,7 @@ DROP TABLE IF EXISTS public.user_invitation;
 
 ALTER TABLE public.users DROP COLUMN is_active;
 ALTER TABLE public.user_invitation DROP COLUMN expiry;
+
+DROP TABLE IF EXISTS roles;
+
+ALTER TABLE public.users DROP COLUMN role_id;

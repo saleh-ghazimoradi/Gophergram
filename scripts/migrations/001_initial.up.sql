@@ -62,3 +62,27 @@ CREATE TABLE IF NOT EXISTS public.user_invitation (
 ALTER TABLE public.users ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT FALSE;
 
 ALTER TABLE public.user_invitation ADD COLUMN expiry TIMESTAMP(0) WITH TIME ZONE NOT NULL;
+
+
+
+CREATE TABLE IF NOT EXISTS public.roles (
+  id BIGSERIAL PRIMARY KEY,
+  name VACHAR(255) NOT NULL UNIQUE,
+  level int NOT NULL DEFAULT 0,
+  description TEXT
+);
+
+INSERT INTO public.roles (name, description, level) VALUES ('user', 'A user can create posts and comments', 1);
+INSERT INTO public.roles (name, description, level) VALUES ('moderator', 'A moderator can update other users posts',2);
+INSERT INTO public.roles (name, description, level) VALUES ('admin', 'An admin can update and delete other users posts', 3);
+
+ALTER TABLE IF EXISTS public.users ADD COLUMN role_id INT REFERENCES roles(id) DEFAULT 1;
+
+UPDATE public.users SET role_id = (
+    SELECT id FROM roles WHERE name = 'user'
+);
+
+
+ALTER TABLE public.users ALTER COLUMN role_id DROP DEFAULT;
+
+ALTER TABLE public.users ALTER COLUMN role_id SET NOT NULL;
