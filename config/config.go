@@ -68,6 +68,7 @@ type APIURL struct {
 
 type Database struct {
 	Postgresql Postgresql `mapstructure:"postgresql"`
+	Redis      Redis      `mapstructure:"redis"`
 }
 
 type Postgresql struct {
@@ -81,6 +82,13 @@ type Postgresql struct {
 	MaxIdleConns int           `mapstructure:"max_idle_conns"` // postgres max idle connections
 	MaxIdleTime  time.Duration `mapstructure:"max_idle_time"`
 	Timeout      time.Duration `mapstructure:"timeout"`
+}
+
+type Redis struct {
+	Addr    string `mapstructure:"addr"`
+	pw      string `mapstructure:"password"`
+	db      int    `mapstructure:"db"`
+	enabled bool   `mapstructure:"enabled"`
 }
 
 func LoadConfig(path string) {
