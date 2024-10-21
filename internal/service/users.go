@@ -2,10 +2,10 @@ package service
 
 import (
 	"context"
+	"database/sql"
 	"github.com/saleh-ghazimoradi/Gophergram/config"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/repository"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/service/service_modles"
-	"log"
 	"time"
 )
 
@@ -19,168 +19,86 @@ type Users interface {
 }
 
 type userService struct {
-	userRepo repository.Users
-	cachRepo repository.Cacher
+	userRepo  repository.Users
+	cacheRepo repository.Cacher
+	db        *sql.DB
 }
 
 func (u *userService) Create(ctx context.Context, users *service_modles.Users) error {
-	tx, err := u.userRepo.BeginTx(ctx)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		if err != nil {
-			tx.Rollback()
-		} else {
-			err = tx.Commit()
-		}
-	}()
-	if err := u.userRepo.Create(ctx, tx, users); err != nil {
-		return err
-	}
-	return nil
+	_, err := withTransaction(ctx, u.db, func(tx *sql.Tx) (struct{}, error) {
+		return struct{}{}, u.userRepo.Create(ctx, tx, users)
+	})
+	return err
 }
 
 func (u *userService) GetByID(ctx context.Context, id int64) (*service_modles.Users, error) {
-	tx, err := u.userRepo.BeginTx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		if err != nil {
-			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				log.Printf("Error during transaction rollback: %v", rollbackErr)
-			}
-		}
-	}()
-
+	var user *service_modles.Users
 	if !config.AppConfig.Database.Redis.Enabled {
-		return u.userRepo.GetByID(ctx, tx, id)
+		return u.userRepo.GetByID(ctx, id)
 	}
 
-	user, err := u.cachRepo.Get(ctx, id)
+	user, err := u.cacheRepo.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
 	if user == nil {
-		user, err = u.userRepo.GetByID(ctx, tx, id)
+		user, err = u.userRepo.GetByID(ctx, id)
 		if err != nil {
 			return nil, err
 		}
 	}
-
-	if err := u.cachRepo.Set(ctx, user); err != nil {
+	if err := u.cacheRepo.Set(ctx, user); err != nil {
 		return nil, err
 	}
 
-	if userErr := tx.Commit(); userErr != nil {
-		return nil, userErr
-	}
 	return user, nil
-
 }
 
-func (u *userService) CreateAndInvite(ctx context.Context, user *service_modles.Users, token string, exp time.Duration) (err error) {
-	tx, err := u.userRepo.BeginTx(ctx)
-	if err != nil {
-		return err
-	}
-
-	defer func() {
-		if err != nil {
-			tx.Rollback()
-		} else {
-			err = tx.Commit()
+func (u *userService) CreateAndInvite(ctx context.Context, user *service_modles.Users, token string, exp time.Duration) error {
+	_, err := withTransaction(ctx, u.db, func(tx *sql.Tx) (struct{}, error) {
+		if err := u.userRepo.Create(ctx, tx, user); err != nil {
+			return struct{}{}, err
 		}
-	}()
-
-	if err = u.userRepo.Create(ctx, tx, user); err != nil {
-		return err
-	}
-
-	if err = u.userRepo.CreateUserInvitation(ctx, tx, token, exp, user.ID); err != nil {
-		return err
-	}
-
-	return nil
+		return struct{}{}, u.userRepo.CreateUserInvitation(ctx, tx, token, exp, user.ID)
+	})
+	return err
 }
 
 func (u *userService) ActivateUser(ctx context.Context, token string) error {
-	tx, err := u.userRepo.BeginTx(ctx)
-	if err != nil {
-		return err
-	}
-	defer func() {
+	_, err := withTransaction(ctx, u.db, func(tx *sql.Tx) (struct{}, error) {
+		user, err := u.userRepo.GetUserFromInvitation(ctx, tx, token)
 		if err != nil {
-			tx.Rollback()
-		} else {
-			err = tx.Commit()
+			return struct{}{}, err
 		}
-	}()
+		user.IsActive = true
 
-	user, err := u.userRepo.GetUserFromInvitation(ctx, tx, token)
-	if err != nil {
-		return err
-	}
-	user.IsActive = true
-
-	if err := u.userRepo.UpdateUserInvitation(ctx, tx, user); err != nil {
-		return err
-	}
-	if err := u.userRepo.DeleteUserInvitation(ctx, tx, user.ID); err != nil {
-		return err
-	}
-	return nil
+		if err := u.userRepo.UpdateUserInvitation(ctx, tx, user); err != nil {
+			return struct{}{}, err
+		}
+		return struct{}{}, u.userRepo.DeleteUserInvitation(ctx, tx, user.ID)
+	})
+	return err
 }
 
 func (u *userService) Delete(ctx context.Context, id int64) error {
-	tx, err := u.userRepo.BeginTx(ctx)
-	if err != nil {
-		return err
-	}
-
-	defer func() {
-		if err != nil {
-			tx.Rollback()
-		} else {
-			err = tx.Commit()
+	_, err := withTransaction(ctx, u.db, func(tx *sql.Tx) (struct{}, error) {
+		if err := u.userRepo.Delete(ctx, tx, id); err != nil {
+			return struct{}{}, err
 		}
-	}()
-
-	if err := u.userRepo.Delete(ctx, tx, id); err != nil {
-		return err
-	}
-
-	if err := u.userRepo.DeleteUserInvitation(ctx, tx, id); err != nil {
-		return err
-	}
-
-	return nil
+		return struct{}{}, u.userRepo.DeleteUserInvitation(ctx, tx, id)
+	})
+	return err
 }
 
 func (u *userService) GetByEmail(ctx context.Context, email string) (*service_modles.Users, error) {
-	tx, err := u.userRepo.BeginTx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		if err != nil {
-			tx.Rollback()
-		} else {
-			err = tx.Commit()
-		}
-	}()
-	user, err := u.userRepo.GetByEmail(ctx, tx, email)
-	if err != nil {
-		return nil, err
-	}
-	return user, nil
+	return u.userRepo.GetByEmail(ctx, email)
 }
 
-func NewServiceUser(repo repository.Users, cacheRepo repository.Cacher) Users {
+func NewServiceUser(repo repository.Users, cacheRepo repository.Cacher, db *sql.DB) Users {
 	return &userService{
-		userRepo: repo,
-		cachRepo: cacheRepo,
+		userRepo:  repo,
+		cacheRepo: cacheRepo,
+		db:        db,
 	}
 }

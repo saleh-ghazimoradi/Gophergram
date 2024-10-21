@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
+	"database/sql"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/repository"
-	"log"
 )
 
 type Follow interface {
@@ -13,55 +13,32 @@ type Follow interface {
 
 type followService struct {
 	followRepo repository.Follow
+	db         *sql.DB
 }
 
 func (s *followService) Follow(ctx context.Context, followerID, userID int64) error {
-	tx, err := s.followRepo.BeginTx(ctx)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		if err != nil {
-			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				log.Printf("Error during transaction rollback: %v", rollbackErr)
-			}
+	_, err := withTransaction(ctx, s.db, func(tx *sql.Tx) (struct{}, error) {
+		if err := s.followRepo.Follow(ctx, tx, followerID, userID); err != nil {
+			return struct{}{}, err
 		}
-	}()
-
-	err = s.followRepo.Follow(ctx, tx, followerID, userID)
-	if err != nil {
-		return err
-	}
-	if followerErr := tx.Commit(); followerErr != nil {
-		return followerErr
-	}
-	return nil
+		return struct{}{}, nil
+	})
+	return err
 }
 
 func (s *followService) Unfollow(ctx context.Context, followerID, userID int64) error {
-	tx, err := s.followRepo.BeginTx(ctx)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		if err != nil {
-			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				log.Printf("Error during transaction rollback: %v", rollbackErr)
-			}
+	_, err := withTransaction(ctx, s.db, func(tx *sql.Tx) (struct{}, error) {
+		if err := s.followRepo.Unfollow(ctx, tx, followerID, userID); err != nil {
+			return struct{}{}, err
 		}
-	}()
-	err = s.followRepo.Unfollow(ctx, tx, followerID, userID)
-	if err != nil {
-		return err
-	}
-	if unfollowerErr := tx.Commit(); unfollowerErr != nil {
-		return unfollowerErr
-	}
-	return nil
+		return struct{}{}, nil
+	})
+	return err
 }
 
-func NewFollowService(followRepo repository.Follow) Follow {
+func NewFollowService(followRepo repository.Follow, db *sql.DB) Follow {
 	return &followService{
 		followRepo: followRepo,
+		db:         db,
 	}
 }

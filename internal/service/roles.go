@@ -15,25 +15,7 @@ type roleService struct {
 }
 
 func (r *roleService) GetByName(ctx context.Context, name string) (*service_modles.Roles, error) {
-	tx, err := r.roleRepo.BeginTx(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	defer func() {
-		if err != nil {
-			tx.Rollback()
-		} else {
-			err = tx.Commit()
-		}
-	}()
-
-	roles, err := r.roleRepo.GetByName(ctx, tx, name)
-	if err != nil {
-		return nil, err
-	}
-
-	return roles, nil
+	return r.roleRepo.GetByName(ctx, name)
 }
 
 func NewRoleService(roleRepo repository.Roles) Roles {

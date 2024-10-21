@@ -12,13 +12,13 @@ import (
 
 type Users interface {
 	Create(ctx context.Context, tx *sql.Tx, user *service_modles.Users) error
-	GetByID(ctx context.Context, tx *sql.Tx, id int64) (*service_modles.Users, error)
+	GetByID(ctx context.Context, id int64) (*service_modles.Users, error)
 	CreateUserInvitation(ctx context.Context, tx *sql.Tx, token string, exp time.Duration, id int64) error
 	GetUserFromInvitation(ctx context.Context, tx *sql.Tx, token string) (*service_modles.Users, error)
 	UpdateUserInvitation(ctx context.Context, tx *sql.Tx, user *service_modles.Users) error
 	DeleteUserInvitation(ctx context.Context, tx *sql.Tx, id int64) error
 	Delete(ctx context.Context, tx *sql.Tx, id int64) error
-	GetByEmail(ctx context.Context, tx *sql.Tx, email string) (*service_modles.Users, error)
+	GetByEmail(ctx context.Context, email string) (*service_modles.Users, error)
 	BeginTx(ctx context.Context) (*sql.Tx, error)
 }
 
@@ -56,7 +56,7 @@ func (u *userRepository) Create(ctx context.Context, tx *sql.Tx, user *service_m
 	return nil
 }
 
-func (u *userRepository) GetByID(ctx context.Context, tx *sql.Tx, id int64) (*service_modles.Users, error) {
+func (u *userRepository) GetByID(ctx context.Context, id int64) (*service_modles.Users, error) {
 	query := `SELECT users.id, username, email, password, created_at, roles.*
 		FROM users
 		JOIN roles ON (users.role_id = roles.id)
@@ -65,7 +65,7 @@ func (u *userRepository) GetByID(ctx context.Context, tx *sql.Tx, id int64) (*se
 	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.QueryTimeOut.Timeout)
 	defer cancel()
 	var user service_modles.Users
-	err := tx.QueryRowContext(ctx, query, id).Scan(&user.ID, &user.Username, &user.Email, &user.Password.Hash, &user.CreatedAt, &user.Role.ID, &user.Role.Name, &user.Role.Level, &user.Role.Description)
+	err := u.db.QueryRowContext(ctx, query, id).Scan(&user.ID, &user.Username, &user.Email, &user.Password.Hash, &user.CreatedAt, &user.Role.ID, &user.Role.Name, &user.Role.Level, &user.Role.Description)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -154,12 +154,12 @@ func (u *userRepository) Delete(ctx context.Context, tx *sql.Tx, id int64) error
 	return nil
 }
 
-func (u *userRepository) GetByEmail(ctx context.Context, tx *sql.Tx, email string) (*service_modles.Users, error) {
+func (u *userRepository) GetByEmail(ctx context.Context, email string) (*service_modles.Users, error) {
 	query := `SELECT id, username, email, password, created_at FROM users WHERE email = $1 AND is_active = true`
 	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.QueryTimeOut.Timeout)
 	defer cancel()
 	user := &service_modles.Users{}
-	err := tx.QueryRowContext(ctx, query, email).Scan(
+	err := u.db.QueryRowContext(ctx, query, email).Scan(
 		&user.ID,
 		&user.Username,
 		&user.Email,

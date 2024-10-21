@@ -57,10 +57,10 @@ var httpCmd = &cobra.Command{
 		roleDB := repository.NewRoleRepository(db)
 
 		/*-------------------service---------------------*/
-		postService := service.NewPostService(postDB, commentDB)
+		postService := service.NewPostService(postDB, commentDB, db)
 		commentService := service.NewCommentService(commentDB)
-		userService := service.NewServiceUser(userDB, cacheDB)
-		followService := service.NewFollowService(followDB)
+		userService := service.NewServiceUser(userDB, cacheDB, db)
+		followService := service.NewFollowService(followDB, db)
 		mailerService := service.NewSendGridMailer(config.AppConfig.General.Mail.SendGrid.ApiKey, config.AppConfig.General.Mail.SendGrid.FromEmail)
 		jwtAuthentication := service.NewJWTAuthenticator(config.AppConfig.General.Auth.Token.Secret, config.AppConfig.General.Auth.Token.TokenHost, config.AppConfig.General.Auth.Token.TokenHost)
 		roleService := service.NewRoleService(roleDB)

@@ -2,9 +2,9 @@ package service
 
 import (
 	"context"
+	"database/sql"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/repository"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/service/service_modles"
-	"log"
 )
 
 type Comments interface {
@@ -14,48 +14,21 @@ type Comments interface {
 
 type commentService struct {
 	commentRepo repository.Comments
+	db          *sql.DB
 }
 
 func (c *commentService) GetByPostID(ctx context.Context, id int64) ([]service_modles.Comments, error) {
-	tx, err := c.commentRepo.BeginTx(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	defer func() {
-		if err != nil {
-			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				log.Printf("Error during transaction rollback: %v", rollbackErr)
-			}
-		}
-	}()
-	comment, err := c.commentRepo.GetByPostID(ctx, tx, id)
-	if err != nil {
-		return nil, err
-	}
-	if commitErr := tx.Commit(); commitErr != nil {
-		return nil, commitErr
-	}
-	return comment, nil
+	return c.commentRepo.GetByPostID(ctx, id)
 }
 
 func (c *commentService) Create(ctx context.Context, comments *service_modles.Comments) error {
-	tx, err := c.commentRepo.BeginTx(ctx)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		if err != nil {
-			tx.Rollback()
-		} else {
-			err = tx.Commit()
+	_, err := withTransaction(ctx, c.db, func(tx *sql.Tx) (struct{}, error) {
+		if err := c.commentRepo.Create(ctx, tx, comments); err != nil {
+			return struct{}{}, err
 		}
-	}()
-
-	if err := c.commentRepo.Create(ctx, tx, comments); err != nil {
-		return err
-	}
-	return nil
+		return struct{}{}, nil
+	})
+	return err
 }
 
 func NewCommentService(commentRepo repository.Comments) Comments {
