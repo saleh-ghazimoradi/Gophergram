@@ -43,7 +43,7 @@ var seedCmd = &cobra.Command{
 		userDB := repository.NewUserRepository(db)
 		postService := service.NewPostService(postDB, commentDB)
 		commentService := service.NewCommentService(commentDB)
-		userService := service.NewServiceUser(userDB)
+		userService := service.NewServiceUser(userDB, nil)
 		seedService := service.NewSeederService(postService, commentService, userService)
 
 		if err := seedService.SeedDatabase(cmd.Context(), db); err != nil {

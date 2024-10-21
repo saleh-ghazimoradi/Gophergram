@@ -86,9 +86,9 @@ type Postgresql struct {
 
 type Redis struct {
 	Addr    string `mapstructure:"addr"`
-	pw      string `mapstructure:"password"`
-	db      int    `mapstructure:"db"`
-	enabled bool   `mapstructure:"enabled"`
+	PW      string `mapstructure:"password"`
+	DB      int    `mapstructure:"db"`
+	Enabled bool   `mapstructure:"enabled"`
 }
 
 func LoadConfig(path string) {

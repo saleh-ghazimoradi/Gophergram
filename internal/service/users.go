@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"github.com/saleh-ghazimoradi/Gophergram/config"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/repository"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/service/service_modles"
 	"log"
@@ -19,6 +20,7 @@ type Users interface {
 
 type userService struct {
 	userRepo repository.Users
+	cachRepo repository.Cacher
 }
 
 func (u *userService) Create(ctx context.Context, users *service_modles.Users) error {
@@ -51,14 +53,32 @@ func (u *userService) GetByID(ctx context.Context, id int64) (*service_modles.Us
 			}
 		}
 	}()
-	user, err := u.userRepo.GetByID(ctx, tx, id)
+
+	if !config.AppConfig.Database.Redis.Enabled {
+		return u.userRepo.GetByID(ctx, tx, id)
+	}
+
+	user, err := u.cachRepo.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
+
+	if user == nil {
+		user, err = u.userRepo.GetByID(ctx, tx, id)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if err := u.cachRepo.Set(ctx, user); err != nil {
+		return nil, err
+	}
+
 	if userErr := tx.Commit(); userErr != nil {
 		return nil, userErr
 	}
 	return user, nil
+
 }
 
 func (u *userService) CreateAndInvite(ctx context.Context, user *service_modles.Users, token string, exp time.Duration) (err error) {
@@ -158,8 +178,9 @@ func (u *userService) GetByEmail(ctx context.Context, email string) (*service_mo
 	return user, nil
 }
 
-func NewServiceUser(repo repository.Users) Users {
+func NewServiceUser(repo repository.Users, cacheRepo repository.Cacher) Users {
 	return &userService{
 		userRepo: repo,
+		cachRepo: cacheRepo,
 	}
 }

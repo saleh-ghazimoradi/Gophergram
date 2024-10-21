@@ -16,6 +16,7 @@ const userCtx userKey = "user"
 type User struct {
 	userService   service.Users
 	followService service.Follow
+	cacheService  repository.Cacher
 }
 
 // GetUserByID godoc
@@ -33,7 +34,27 @@ type User struct {
 // @Security ApiKeyAuth
 // @Router /user/{id} [get]
 func (u *User) GetUserByID(w http.ResponseWriter, r *http.Request) {
-	user := GetUserFromContext(r)
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil || id < 1 {
+		badRequestResponse(w, r, err)
+		return
+	}
+
+	ctx := r.Context()
+
+	user, err := u.userService.GetByID(ctx, id)
+	if err != nil {
+		switch err {
+		case repository.ErrNotFound:
+			notFoundResponse(w, r, err)
+			return
+		default:
+			internalServerError(w, r, err)
+			return
+		}
+
+	}
+
 	if err := jsonResponse(w, http.StatusOK, user); err != nil {
 		internalServerError(w, r, err)
 	}
@@ -171,9 +192,10 @@ func GetUserFromContext(r *http.Request) *service_modles.Users {
 	return user
 }
 
-func NewUserHandler(userService service.Users, followService service.Follow) *User {
+func NewUserHandler(userService service.Users, followService service.Follow, cacheService repository.Cacher) *User {
 	return &User{
 		userService:   userService,
 		followService: followService,
+		cacheService:  cacheService,
 	}
 }

@@ -40,9 +40,16 @@ var httpCmd = &cobra.Command{
 		}
 		defer db.Close()
 
-		logger.Logger.Info("database connection pool established")
+		redis, err := utils.RedisConnection(config.AppConfig.Database.Redis.Addr, config.AppConfig.Database.Redis.PW, config.AppConfig.Database.Redis.DB)
+		if err != nil {
+			logger.Logger.Fatal(err)
+		}
+
+		logger.Logger.Info("Postgresql connection pool established")
+		logger.Logger.Info("Redis connection pool established")
 
 		/*-------------------repo---------------------*/
+		cacheDB := repository.NewCacheRepo(redis)
 		postDB := repository.NewPostRepository(db)
 		commentDB := repository.NewCommentRepository(db)
 		userDB := repository.NewUserRepository(db)
@@ -52,17 +59,17 @@ var httpCmd = &cobra.Command{
 		/*-------------------service---------------------*/
 		postService := service.NewPostService(postDB, commentDB)
 		commentService := service.NewCommentService(commentDB)
-		userService := service.NewServiceUser(userDB)
+		userService := service.NewServiceUser(userDB, cacheDB)
 		followService := service.NewFollowService(followDB)
 		mailerService := service.NewSendGridMailer(config.AppConfig.General.Mail.SendGrid.ApiKey, config.AppConfig.General.Mail.SendGrid.FromEmail)
 		jwtAuthentication := service.NewJWTAuthenticator(config.AppConfig.General.Auth.Token.Secret, config.AppConfig.General.Auth.Token.TokenHost, config.AppConfig.General.Auth.Token.TokenHost)
 		roleService := service.NewRoleService(roleDB)
 		/*-------------------handler----------------------*/
 		postHandler := gateway.NewPostHandler(postService, commentService)
-		userHandler := gateway.NewUserHandler(userService, followService)
+		userHandler := gateway.NewUserHandler(userService, followService, cacheDB)
 		feedHandler := gateway.NewFeedHandler(postService)
 		authHandler := gateway.NewAuth(userService, mailerService, jwtAuthentication)
-		authMiddleware := gateway.NewMiddleware(userService, jwtAuthentication, postService, roleService)
+		authMiddleware := gateway.NewMiddleware(userService, jwtAuthentication, postService, roleService, cacheDB)
 
 		routeHandlers := gateway.Handlers{
 			CreatePostHandler:      postHandler.CreatePost,
