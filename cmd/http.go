@@ -66,10 +66,10 @@ var httpCmd = &cobra.Command{
 		roleService := service.NewRoleService(roleDB)
 		/*-------------------handler----------------------*/
 		postHandler := gateway.NewPostHandler(postService, commentService)
-		userHandler := gateway.NewUserHandler(userService, followService, cacheDB)
+		userHandler := gateway.NewUserHandler(userService, followService)
 		feedHandler := gateway.NewFeedHandler(postService)
 		authHandler := gateway.NewAuth(userService, mailerService, jwtAuthentication)
-		authMiddleware := gateway.NewMiddleware(userService, jwtAuthentication, postService, roleService, cacheDB)
+		authMiddleware := gateway.NewMiddleware(userService, jwtAuthentication, postService, roleService)
 
 		routeHandlers := gateway.Handlers{
 			CreatePostHandler:      postHandler.CreatePost,

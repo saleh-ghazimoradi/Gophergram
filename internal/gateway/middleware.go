@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/saleh-ghazimoradi/Gophergram/config"
-	"github.com/saleh-ghazimoradi/Gophergram/internal/repository"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/service"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/service/service_modles"
 	"github.com/saleh-ghazimoradi/Gophergram/logger"
@@ -16,11 +15,10 @@ import (
 )
 
 type middlewares struct {
-	userService  service.Users
-	authService  service.Authenticator
-	postService  service.Posts
-	roleService  service.Roles
-	cacheService repository.Cacher
+	userService service.Users
+	authService service.Authenticator
+	postService service.Posts
+	roleService service.Roles
 }
 
 func commonHeaders(next http.Handler) http.Handler {
@@ -173,6 +171,6 @@ func (m *middlewares) checkRolePrecedence(ctx context.Context, user *service_mod
 	return user.Role.Level >= role.Level, nil
 }
 
-func NewMiddleware(userService service.Users, authService service.Authenticator, postService service.Posts, roleService service.Roles, cacheService repository.Cacher) *middlewares {
-	return &middlewares{userService: userService, authService: authService, postService: postService, roleService: roleService, cacheService: cacheService}
+func NewMiddleware(userService service.Users, authService service.Authenticator, postService service.Posts, roleService service.Roles) *middlewares {
+	return &middlewares{userService: userService, authService: authService, postService: postService, roleService: roleService}
 }

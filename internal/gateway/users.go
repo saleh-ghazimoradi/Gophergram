@@ -16,7 +16,6 @@ const userCtx userKey = "user"
 type User struct {
 	userService   service.Users
 	followService service.Follow
-	cacheService  repository.Cacher
 }
 
 // GetUserByID godoc
@@ -192,10 +191,9 @@ func GetUserFromContext(r *http.Request) *service_modles.Users {
 	return user
 }
 
-func NewUserHandler(userService service.Users, followService service.Follow, cacheService repository.Cacher) *User {
+func NewUserHandler(userService service.Users, followService service.Follow) *User {
 	return &User{
 		userService:   userService,
 		followService: followService,
-		cacheService:  cacheService,
 	}
 }
