@@ -58,7 +58,7 @@ var httpCmd = &cobra.Command{
 
 		/*-------------------service---------------------*/
 		postService := service.NewPostService(postDB, commentDB, db)
-		commentService := service.NewCommentService(commentDB)
+		commentService := service.NewCommentService(commentDB, db)
 		userService := service.NewServiceUser(userDB, cacheDB, db)
 		followService := service.NewFollowService(followDB, db)
 		mailerService := service.NewSendGridMailer(config.AppConfig.General.Mail.SendGrid.ApiKey, config.AppConfig.General.Mail.SendGrid.FromEmail)

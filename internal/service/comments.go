@@ -31,6 +31,6 @@ func (c *commentService) Create(ctx context.Context, comments *service_modles.Co
 	return err
 }
 
-func NewCommentService(commentRepo repository.Comments) Comments {
-	return &commentService{commentRepo: commentRepo}
+func NewCommentService(commentRepo repository.Comments, db *sql.DB) Comments {
+	return &commentService{commentRepo: commentRepo, db: db}
 }
