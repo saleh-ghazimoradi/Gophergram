@@ -13,6 +13,12 @@ type config struct {
 	Database     Database     `mapstructure:"database"` // databases configs
 	Env          Env          `mapstructure:"env"`
 	QueryTimeOut QueryTimeOut `mapstructure:"query_timeout"`
+	Rate         Rate         `mapstructure:"rate"`
+}
+
+type Rate struct {
+	Limit int           `mapstructure:"limit"`
+	Time  time.Duration `mapstructure:"time"`
 }
 
 type Env struct {

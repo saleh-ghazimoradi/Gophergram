@@ -12,13 +12,15 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type middlewares struct {
-	userService service.Users
-	authService service.Authenticator
-	postService service.Posts
-	roleService service.Roles
+	userService      service.Users
+	authService      service.Authenticator
+	postService      service.Posts
+	roleService      service.Roles
+	rateLimitService service.RateLimiter
 }
 
 func commonHeaders(next http.Handler) http.Handler {
@@ -171,6 +173,32 @@ func (m *middlewares) checkRolePrecedence(ctx context.Context, user *service_mod
 	return user.Role.Level >= role.Level, nil
 }
 
-func NewMiddleware(userService service.Users, authService service.Authenticator, postService service.Posts, roleService service.Roles) *middlewares {
-	return &middlewares{userService: userService, authService: authService, postService: postService, roleService: roleService}
+func (m *middlewares) RateLimitMiddleware(ctx context.Context, rateLimiter service.RateLimiter, limit int, window time.Duration) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			clientIP := r.RemoteAddr
+			allowed, retryAfter, err := rateLimiter.IsAllowed(ctx, clientIP, limit, window)
+
+			if err != nil && err == service.ErrRateLimitExceeded {
+				w.Header().Set("Retry-After", strconv.Itoa(int(retryAfter.Seconds())))
+				http.Error(w, "Rate limit exceeded", http.StatusTooManyRequests)
+				return
+			} else if err != nil {
+				http.Error(w, "Internal server error", http.StatusInternalServerError)
+				return
+			}
+
+			if !allowed {
+				w.Header().Set("Retry-After", strconv.Itoa(int(retryAfter.Seconds())))
+				http.Error(w, "Rate limit exceeded", http.StatusTooManyRequests)
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+func NewMiddleware(userService service.Users, authService service.Authenticator, postService service.Posts, roleService service.Roles, rateLimitService service.RateLimiter) *middlewares {
+	return &middlewares{userService: userService, authService: authService, postService: postService, roleService: roleService, rateLimitService: rateLimitService}
 }

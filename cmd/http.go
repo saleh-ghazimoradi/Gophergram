@@ -55,6 +55,7 @@ var httpCmd = &cobra.Command{
 		userDB := repository.NewUserRepository(db)
 		followDB := repository.NewFollowRepository(db)
 		roleDB := repository.NewRoleRepository(db)
+		rateLimitDB := repository.NewRateLimitRepo(redis)
 
 		/*-------------------service---------------------*/
 		postService := service.NewPostService(postDB, commentDB, db)
@@ -64,12 +65,13 @@ var httpCmd = &cobra.Command{
 		mailerService := service.NewSendGridMailer(config.AppConfig.General.Mail.SendGrid.ApiKey, config.AppConfig.General.Mail.SendGrid.FromEmail)
 		jwtAuthentication := service.NewJWTAuthenticator(config.AppConfig.General.Auth.Token.Secret, config.AppConfig.General.Auth.Token.TokenHost, config.AppConfig.General.Auth.Token.TokenHost)
 		roleService := service.NewRoleService(roleDB)
+		rateLimitService := service.NewRateLimitService(rateLimitDB)
 		/*-------------------handler----------------------*/
 		postHandler := gateway.NewPostHandler(postService, commentService)
 		userHandler := gateway.NewUserHandler(userService, followService)
 		feedHandler := gateway.NewFeedHandler(postService)
 		authHandler := gateway.NewAuth(userService, mailerService, jwtAuthentication)
-		authMiddleware := gateway.NewMiddleware(userService, jwtAuthentication, postService, roleService)
+		authMiddleware := gateway.NewMiddleware(userService, jwtAuthentication, postService, roleService, rateLimitService)
 
 		routeHandlers := gateway.Handlers{
 			CreatePostHandler:      postHandler.CreatePost,
@@ -86,9 +88,10 @@ var httpCmd = &cobra.Command{
 			PostsContextMiddleware: postHandler.PostsContextMiddleware,
 			AuthTokenMiddleware:    authMiddleware.AuthToken,
 			CheckPostOwnership:     authMiddleware.CheckPostOwnership,
+			RateLimitMiddleware:    authMiddleware.RateLimitMiddleware,
 		}
 
-		if err := gateway.Server(gateway.Routes(routeHandlers)); err != nil {
+		if err := gateway.Server(gateway.Routes(routeHandlers, rateLimitService)); err != nil {
 			logger.Logger.Fatal(err)
 		}
 	},
