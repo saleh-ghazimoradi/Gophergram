@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-const version = "0.0.1"
+const Version = "1.0.0"
 
 //	 healthCheckHandler godoc
 //
@@ -19,7 +19,7 @@ func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	data := map[string]string{
 		"status":  "ok",
 		"env":     config.AppConfig.Env.Env,
-		"version": version,
+		"version": Version,
 	}
 	if err := jsonResponse(w, http.StatusOK, data); err != nil {
 		internalServerError(w, r, err)

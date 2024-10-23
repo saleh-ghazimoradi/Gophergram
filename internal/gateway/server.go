@@ -16,7 +16,7 @@ import (
 
 func Server(mux http.Handler) error {
 	// Docs
-	docs.SwaggerInfo.Version = version
+	docs.SwaggerInfo.Version = Version
 	docs.SwaggerInfo.Host = config.AppConfig.General.APIURL.APIURLSwag
 	docs.SwaggerInfo.BasePath = "/v1"
 

@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"expvar"
 	"github.com/saleh-ghazimoradi/Gophergram/config"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/gateway"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/repository"
@@ -8,6 +9,8 @@ import (
 	"github.com/saleh-ghazimoradi/Gophergram/logger"
 	"github.com/saleh-ghazimoradi/Gophergram/utils"
 	"github.com/spf13/cobra"
+	"runtime"
+	"time"
 )
 
 func init() {
@@ -47,6 +50,19 @@ var httpCmd = &cobra.Command{
 
 		logger.Logger.Info("Postgresql connection pool established")
 		logger.Logger.Info("Redis connection pool established")
+
+		expvar.NewString("version").Set(gateway.Version)
+		expvar.Publish("goroutines", expvar.Func(func() any {
+			return runtime.NumGoroutine()
+		}))
+
+		expvar.Publish("database", expvar.Func(func() any {
+			return db.Stats()
+		}))
+
+		expvar.Publish("timestamp", expvar.Func(func() any {
+			return time.Now().Unix()
+		}))
 
 		/*-------------------repo---------------------*/
 		cacheDB := repository.NewCacheRepo(redis)

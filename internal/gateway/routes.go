@@ -2,6 +2,7 @@ package gateway
 
 import (
 	"context"
+	"expvar"
 	"fmt"
 	"github.com/justinas/alice"
 	"github.com/saleh-ghazimoradi/Gophergram/config"
@@ -64,7 +65,10 @@ func Routes(handler Handlers, rateLimiter service.RateLimiter) http.Handler {
 
 	mux.Handle("PUT /v1/activate/{token}", ratechain.Then(handler.ActivateUserHandler))
 
-	return (standard.Then(mux))
+	mux.Handle("GET /debug/vars", expvar.Handler())
+
+	return metrics(standard.Then(mux))
+
 }
 
 //func Routes(handler Handlers) http.Handler {
