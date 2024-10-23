@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-const Version = "1.0.0"
+const Version = ""
 
 //	 healthCheckHandler godoc
 //
