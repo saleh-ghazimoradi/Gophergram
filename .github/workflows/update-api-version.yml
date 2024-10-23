@@ -21,12 +21,12 @@ jobs:
 
       - name: Update version in internal/gateway/health.go
         run: |
-          sed -i "s/const Version = \".*\"/const version = \"${{ steps.get_version.outputs.VERSION }}\"/" internal/gateway/health.go
+          sed -i "s/const version = \".*\"/const version = \"${{ steps.get_version.outputs.VERSION }}\"/" cmd/api/main.go
 
       - name: Commit and push if changed
         run: |
           git config --global user.email "action@github.com"
           git config --global user.name "GitHub Action"
-          git add internal/gateway/health.go
+          git add cmd/api/main.go
           git commit -m "Update version to ${{ steps.get_version.outputs.VERSION }}" || echo "No changes to commit"
           git push
