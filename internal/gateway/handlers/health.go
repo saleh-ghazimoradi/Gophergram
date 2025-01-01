@@ -8,7 +8,7 @@ import (
 
 type HealthHandler struct{}
 
-func (h *HealthHandler) Health(w http.ResponseWriter) {
+func (h *HealthHandler) Health(w http.ResponseWriter, r *http.Request) {
 	data := map[string]string{
 		"status":  "ok",
 		"env":     config.AppConfig.ServerConfig.Env,
