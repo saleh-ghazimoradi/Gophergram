@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"github.com/saleh-ghazimoradi/Gophergram/config"
+	"github.com/saleh-ghazimoradi/Gophergram/internal/gateway/helper"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/gateway/json"
 	"net/http"
 )
@@ -15,7 +16,7 @@ func (h *HealthHandler) Health(w http.ResponseWriter, r *http.Request) {
 		"version": config.AppConfig.ServerConfig.Version,
 	}
 	if err := json.WriteJSON(w, http.StatusOK, data); err != nil {
-		json.WriteJSONError(w, http.StatusInternalServerError, err.Error())
+		helper.InternalServerError(w, r, err)
 	}
 }
 

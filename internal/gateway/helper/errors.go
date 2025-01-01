@@ -1,4 +1,4 @@
-package errors
+package helper
 
 import (
 	"github.com/saleh-ghazimoradi/Gophergram/internal/gateway/json"
