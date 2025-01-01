@@ -1,8 +1,14 @@
 CREATE TABLE IF NOT EXISTS posts (
-  id bigserial PRIMARY KEY,
-  content TEXT NOT NULL,
+    id bigserial PRIMARY KEY,
+    content TEXT NOT NULL,
     title TEXT NOT NULL,
     user_id bigint NOT NULL
 );
 
 ALTER TABLE posts ADD CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users (id);
+
+ALTER TABLE posts ADD COLUMN tags VARCHAR(100) [];
+
+ALTER TABLE posts ADD COLUMN created_at TIMESTAMP(0) WITH TIME ZONE NOT NULL DEFAULT NOW();
+
+ALTER TABLE posts ADD COLUMN updated_at TIMESTAMP(0) WITH TIME ZONE NOT NULL DEFAULT NOW();
