@@ -20,6 +20,7 @@ type ServerConfig struct {
 	IdleTimeout  time.Duration `env:"SERVER_IDLE_TIMEOUT,required"`
 	ReadTimeout  time.Duration `env:"SERVER_READ_TIMEOUT,required"`
 	WriteTimeout time.Duration `env:"SERVER_WRITE_TIMEOUT,required"`
+	Env          string        `env:"SERVER_ENV,required"`
 }
 
 type DBConfig struct {
