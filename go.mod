@@ -6,6 +6,8 @@ require (
 	github.com/caarlos0/env v3.5.0+incompatible
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/joho/godotenv v1.5.1
+	github.com/julienschmidt/httprouter v1.3.0
+	github.com/lib/pq v1.10.9
 	github.com/spf13/cobra v1.8.1
 )
 
