@@ -35,11 +35,11 @@ func (p *postRepository) Create(ctx context.Context, post *service_models.Post) 
 }
 
 func (p *postRepository) GetById(ctx context.Context, id int64) (*service_models.Post, error) {
-	query := `SELECT id, content, title, user_id, tags, created_at, updated_at FROM posts WHERE id = $1`
+	query := `SELECT id, content, title, user_id, tags, created_at, updated_at , version FROM posts WHERE id = $1`
 
 	var post service_models.Post
 
-	err := p.dbRead.QueryRowContext(ctx, query, id).Scan(&post.ID, &post.Content, &post.Title, &post.UserID, pq.Array(&post.Tags), &post.CreatedAt, &post.UpdatedAt)
+	err := p.dbRead.QueryRowContext(ctx, query, id).Scan(&post.ID, &post.Content, &post.Title, &post.UserID, pq.Array(&post.Tags), &post.CreatedAt, &post.UpdatedAt, &post.Version)
 
 	if err != nil {
 		switch {
@@ -54,6 +54,7 @@ func (p *postRepository) GetById(ctx context.Context, id int64) (*service_models
 
 func (p *postRepository) Delete(ctx context.Context, id int64) error {
 	query := `DELETE FROM posts WHERE id = $1`
+
 	result, err := p.dbWrite.ExecContext(ctx, query, id)
 	if err != nil {
 		return err
@@ -70,11 +71,16 @@ func (p *postRepository) Delete(ctx context.Context, id int64) error {
 }
 
 func (p *postRepository) Update(ctx context.Context, post *service_models.Post) error {
-	query := `UPDATE posts SET title = $1, content = $2 WHERE id = $3`
+	query := `UPDATE posts SET title = $1, content = $2, version = version + 1 WHERE id = $3 AND version = $4 RETURNING version`
 
-	_, err := p.dbWrite.ExecContext(ctx, query, post.Title, post.Content, post.ID)
+	err := p.dbWrite.QueryRowContext(ctx, query, post.Title, post.Content, post.ID, post.Version).Scan(&post.Version)
 	if err != nil {
-		return err
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return ErrsNotFound
+		default:
+			return err
+		}
 	}
 	return nil
 }
