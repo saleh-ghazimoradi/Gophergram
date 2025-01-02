@@ -44,7 +44,7 @@ func (p *PostHandler) CreatePostHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if err := json.WriteJSON(w, http.StatusCreated, post); err != nil {
+	if err := json.JSONResponse(w, http.StatusCreated, post); err != nil {
 		helper.InternalServerError(w, r, err)
 	}
 }
@@ -60,7 +60,7 @@ func (p *PostHandler) GetPostByIdHandler(w http.ResponseWriter, r *http.Request)
 
 	post.Comments = comments
 
-	if err = json.WriteJSON(w, http.StatusOK, post); err != nil {
+	if err = json.JSONResponse(w, http.StatusOK, post); err != nil {
 		helper.InternalServerError(w, r, err)
 	}
 }
@@ -82,7 +82,7 @@ func (p *PostHandler) UpdatePostHandler(w http.ResponseWriter, r *http.Request) 
 	if payload.Title != nil {
 		post.Title = *payload.Title
 	}
-	
+
 	if payload.Content != nil {
 		post.Content = *payload.Content
 	}
@@ -92,7 +92,7 @@ func (p *PostHandler) UpdatePostHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if err := json.WriteJSON(w, http.StatusOK, post); err != nil {
+	if err := json.JSONResponse(w, http.StatusOK, post); err != nil {
 		helper.InternalServerError(w, r, err)
 	}
 }

@@ -15,7 +15,7 @@ func (h *HealthHandler) Health(w http.ResponseWriter, r *http.Request) {
 		"env":     config.AppConfig.ServerConfig.Env,
 		"version": config.AppConfig.ServerConfig.Version,
 	}
-	if err := json.WriteJSON(w, http.StatusOK, data); err != nil {
+	if err := json.JSONResponse(w, http.StatusOK, data); err != nil {
 		helper.InternalServerError(w, r, err)
 	}
 }
