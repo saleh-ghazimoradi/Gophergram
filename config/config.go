@@ -12,6 +12,7 @@ var AppConfig *Config
 type Config struct {
 	ServerConfig ServerConfig
 	DBConfig     DBConfig
+	Context      Context
 }
 
 type ServerConfig struct {
@@ -21,6 +22,10 @@ type ServerConfig struct {
 	ReadTimeout  time.Duration `env:"SERVER_READ_TIMEOUT,required"`
 	WriteTimeout time.Duration `env:"SERVER_WRITE_TIMEOUT,required"`
 	Env          string        `env:"SERVER_ENV,required"`
+}
+
+type Context struct {
+	ContextTimeout time.Duration `env:"CONTEXT_TIME_OUT,required"`
 }
 
 type DBConfig struct {
@@ -61,6 +66,14 @@ func LoadingConfig() error {
 	if err := env.Parse(dbConfig); err != nil {
 		log.Fatal("error parsing config")
 	}
+
+	contextConfig := &Context{}
+
+	if err := env.Parse(contextConfig); err != nil {
+		log.Fatal("error parsing config")
+	}
+
+	config.Context = *contextConfig
 
 	config.DBConfig = *dbConfig
 

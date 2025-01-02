@@ -6,6 +6,7 @@ import (
 	"errors"
 	"github.com/lib/pq"
 	_ "github.com/lib/pq"
+	"github.com/saleh-ghazimoradi/Gophergram/config"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/service/service_models"
 )
 
@@ -26,6 +27,9 @@ type postRepository struct {
 func (p *postRepository) Create(ctx context.Context, post *service_models.Post) error {
 	query := `INSERT INTO posts (content, title, user_id, tags) VALUES ($1, $2, $3, $4) RETURNING id, created_at, updated_at`
 
+	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.Context.ContextTimeout)
+	defer cancel()
+
 	args := []any{post.Content, post.Title, post.UserID, pq.Array(post.Tags)}
 
 	if err := p.dbWrite.QueryRowContext(ctx, query, args...).Scan(&post.ID, &post.CreatedAt, &post.UpdatedAt); err != nil {
@@ -36,6 +40,9 @@ func (p *postRepository) Create(ctx context.Context, post *service_models.Post) 
 
 func (p *postRepository) GetById(ctx context.Context, id int64) (*service_models.Post, error) {
 	query := `SELECT id, content, title, user_id, tags, created_at, updated_at , version FROM posts WHERE id = $1`
+
+	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.Context.ContextTimeout)
+	defer cancel()
 
 	var post service_models.Post
 
@@ -55,6 +62,9 @@ func (p *postRepository) GetById(ctx context.Context, id int64) (*service_models
 func (p *postRepository) Delete(ctx context.Context, id int64) error {
 	query := `DELETE FROM posts WHERE id = $1`
 
+	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.Context.ContextTimeout)
+	defer cancel()
+
 	result, err := p.dbWrite.ExecContext(ctx, query, id)
 	if err != nil {
 		return err
@@ -72,6 +82,9 @@ func (p *postRepository) Delete(ctx context.Context, id int64) error {
 
 func (p *postRepository) Update(ctx context.Context, post *service_models.Post) error {
 	query := `UPDATE posts SET title = $1, content = $2, version = version + 1 WHERE id = $3 AND version = $4 RETURNING version`
+
+	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.Context.ContextTimeout)
+	defer cancel()
 
 	err := p.dbWrite.QueryRowContext(ctx, query, post.Title, post.Content, post.ID, post.Version).Scan(&post.Version)
 	if err != nil {

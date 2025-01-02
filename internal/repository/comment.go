@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"github.com/saleh-ghazimoradi/Gophergram/config"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/service/service_models"
 )
 
@@ -19,6 +20,9 @@ type commentRepository struct {
 
 func (c *commentRepository) GetByPostId(ctx context.Context, id int64) ([]service_models.Comment, error) {
 	query := `SELECT c.id, c.post_id, c.user_id, c.content, c.created_at, users.username, users.id FROM comments c JOIN users on users.id = c.user_id WHERE c.post_id = $1 ORDER BY c.created_at DESC;`
+
+	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.Context.ContextTimeout)
+	defer cancel()
 
 	rows, err := c.dbRead.QueryContext(ctx, query, id)
 	if err != nil {
