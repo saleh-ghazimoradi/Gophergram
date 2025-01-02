@@ -7,6 +7,7 @@ import (
 	"github.com/saleh-ghazimoradi/Gophergram/config"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/gateway/routes"
 	"github.com/saleh-ghazimoradi/Gophergram/logger"
+	"github.com/saleh-ghazimoradi/Gophergram/utils"
 	"net/http"
 	"os"
 	"os/signal"
@@ -18,10 +19,14 @@ import (
 var wg sync.WaitGroup
 
 func Server() error {
+	db, err := utils.PostConnection()
+	if err != nil {
+		return err
+	}
 
 	router := httprouter.New()
-
 	routes.HealthCheck(router)
+	routes.Posts(router, db)
 
 	srv := &http.Server{
 		Addr:         config.AppConfig.ServerConfig.Port,
@@ -56,7 +61,7 @@ func Server() error {
 
 	logger.Logger.Info("starting server", "addr", config.AppConfig.ServerConfig.Port, "env", config.AppConfig.ServerConfig.Env)
 
-	err := srv.ListenAndServe()
+	err = srv.ListenAndServe()
 	if !errors.Is(err, http.ErrServerClosed) {
 		return err
 	}
