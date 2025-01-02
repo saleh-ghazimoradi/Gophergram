@@ -17,12 +17,12 @@ func BadRequestResponse(w http.ResponseWriter, r *http.Request, err error) {
 }
 
 func NotFoundResponse(w http.ResponseWriter, r *http.Request, err error) {
-	logger.Logger.Warn("not found error: %s path: %s error: %s", r.Method, r.URL.Path, err.Error())
+	logger.Logger.Warn("not found error", "method", r.Method, "path", r.URL.Path, "error", err.Error())
 	json.WriteJSONError(w, http.StatusNotFound, err.Error())
 }
 
 func ConflictResponse(w http.ResponseWriter, r *http.Request, err error) {
-	logger.Logger.Error("conflict response: %s path: %s error: %s", r.Method, r.URL.Path, err.Error())
+	logger.Logger.Error("conflict response", "method", r.Method, "path", r.URL.Path, "error", err.Error())
 	json.WriteJSONError(w, http.StatusConflict, err.Error())
 }
 
@@ -38,7 +38,7 @@ func unauthorizedBasicErrorResponse(w http.ResponseWriter, r *http.Request, err 
 }
 
 func forbiddenResponse(w http.ResponseWriter, r *http.Request) {
-	logger.Logger.Warn("forbidden", "method", r.Method, "path", r.URL.Path, "error")
+	logger.Logger.Warn("forbidden", "method", r.Method, "path", r.URL.Path)
 	json.WriteJSONError(w, http.StatusForbidden, "forbidden")
 }
 
