@@ -12,6 +12,7 @@ import (
 
 type customMiddleware struct {
 	postService service.PostService
+	userService service.UserService
 }
 
 func (m *customMiddleware) PostsContextMiddleware(next http.Handler) http.Handler {
@@ -38,8 +39,34 @@ func (m *customMiddleware) PostsContextMiddleware(next http.Handler) http.Handle
 	})
 }
 
-func NewMiddleware(PostService service.PostService) *customMiddleware {
+func (m *customMiddleware) UserContextMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id, err := helper.ReadIdParam(r)
+		if err != nil {
+			helper.BadRequestResponse(w, r, err)
+			return
+		}
+
+		user, err := m.userService.GetById(context.Background(), id)
+		if err != nil {
+			switch {
+			case errors.Is(err, repository.ErrsNotFound):
+				helper.NotFoundResponse(w, r, err)
+				return
+			default:
+				helper.InternalServerError(w, r, err)
+				return
+			}
+		}
+		ctx := r.Context()
+		ctx = context.WithValue(ctx, handlers.UserCTX, user)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func NewMiddleware(postService service.PostService, userService service.UserService) *customMiddleware {
 	return &customMiddleware{
-		postService: PostService,
+		postService: postService,
+		userService: userService,
 	}
 }
