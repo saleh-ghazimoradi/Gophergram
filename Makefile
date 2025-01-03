@@ -46,5 +46,8 @@ migrate-drop:
 http:
 	go run . http
 
+seed:
+	go run . seed
+
 # Declare targets that are not files
-.PHONY: format vet dockerup dockerdown migrate-create migrate-up migrate-down migrate-drop http
+.PHONY: format vet dockerup dockerdown migrate-create migrate-up migrate-down migrate-drop http seed

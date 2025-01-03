@@ -9,6 +9,7 @@ import (
 
 type CommentRepository interface {
 	GetByPostId(ctx context.Context, id int64) ([]service_models.Comment, error)
+	Create(ctx context.Context, comment *service_models.Comment) error
 	WithTx(tx *sql.Tx) CommentRepository
 }
 
@@ -52,6 +53,26 @@ func (c *commentRepository) GetByPostId(ctx context.Context, id int64) ([]servic
 		return nil, err
 	}
 	return comments, nil
+}
+
+func (c *commentRepository) Create(ctx context.Context, comment *service_models.Comment) error {
+	query := `INSERT INTO comments (post_id, user_id, content) VALUES ($1, $2, $3) RETURNING id, created_at`
+	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.Context.ContextTimeout)
+	defer cancel()
+	err := c.dbWrite.QueryRowContext(
+		ctx,
+		query,
+		comment.PostID,
+		comment.UserID,
+		comment.Content,
+	).Scan(
+		&comment.ID,
+		&comment.CreatedAt,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (c *commentRepository) WithTx(tx *sql.Tx) CommentRepository {

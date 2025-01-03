@@ -8,6 +8,7 @@ import (
 
 type CommentService interface {
 	GetByPostId(ctx context.Context, id int64) ([]service_models.Comment, error)
+	Create(ctx context.Context, comment *service_models.Comment) error
 }
 
 type commentService struct {
@@ -16,6 +17,10 @@ type commentService struct {
 
 func (c *commentService) GetByPostId(ctx context.Context, id int64) ([]service_models.Comment, error) {
 	return c.commentRepo.GetByPostId(ctx, id)
+}
+
+func (c *commentService) Create(ctx context.Context, comment *service_models.Comment) error {
+	return c.commentRepo.Create(ctx, comment)
 }
 
 func NewCommentService(commentRepo repository.CommentRepository) CommentService {
