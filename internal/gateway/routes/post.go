@@ -16,7 +16,7 @@ func Posts(router *httprouter.Router, db *sql.DB) {
 	postService := service.NewPostService(postRepository, db)
 	commentService := service.NewCommentService(commentRepository)
 	postHandler := handlers.NewPostHandler(postService, commentService)
-	middle := middlewares.NewMiddleware(postService)
+	middle := middlewares.NewMiddleware(postService, nil)
 
 	postMiddleware := middle.PostsContextMiddleware
 	router.HandlerFunc(http.MethodPost, "/v1/posts", postHandler.CreatePostHandler)
