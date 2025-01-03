@@ -3,12 +3,14 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"github.com/saleh-ghazimoradi/Gophergram/config"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/service/service_models"
 )
 
 type UserRepository interface {
 	Create(ctx context.Context, user *service_models.User) error
+	GetById(ctx context.Context, id int64) (*service_models.User, error)
 	WithTx(tx *sql.Tx) UserRepository
 }
 
@@ -30,6 +32,23 @@ func (u *userRepository) Create(ctx context.Context, user *service_models.User) 
 	}
 
 	return nil
+}
+
+func (u *userRepository) GetById(ctx context.Context, id int64) (*service_models.User, error) {
+	query := `SELECT id, username, email, password, created_at FROM users WHERE id = $1`
+	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.Context.ContextTimeout)
+	defer cancel()
+	var user service_models.User
+	err := u.dbRead.QueryRowContext(ctx, query, id).Scan(&user.ID, &user.Username, &user.Email, &user.Password, &user.CreatedAt)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrsNotFound
+		default:
+			return nil, err
+		}
+	}
+	return &user, nil
 }
 
 func (u *userRepository) WithTx(tx *sql.Tx) UserRepository {

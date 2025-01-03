@@ -10,6 +10,7 @@ import (
 
 type UserService interface {
 	Create(ctx context.Context, user *service_models.User) error
+	GetById(ctx context.Context, id int64) (*service_models.User, error)
 }
 
 type userService struct {
@@ -22,6 +23,10 @@ func (u *userService) Create(ctx context.Context, user *service_models.User) err
 		userRepoWithTx := u.userRepo.WithTx(tx)
 		return userRepoWithTx.Create(ctx, user)
 	})
+}
+
+func (u *userService) GetById(ctx context.Context, id int64) (*service_models.User, error) {
+	return u.userRepo.GetById(ctx, id)
 }
 
 func NewUserService(userRepo repository.UserRepository, db *sql.DB) UserService {

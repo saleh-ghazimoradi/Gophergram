@@ -27,6 +27,7 @@ func Server() error {
 	router := httprouter.New()
 	routes.HealthCheck(router)
 	routes.Posts(router, db)
+	routes.User(router, db)
 
 	srv := &http.Server{
 		Addr:         config.AppConfig.ServerConfig.Port,
