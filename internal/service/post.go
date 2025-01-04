@@ -11,6 +11,7 @@ import (
 type PostService interface {
 	Create(ctx context.Context, post *service_models.Post) error
 	GetById(ctx context.Context, id int64) (*service_models.Post, error)
+	GetUserFeed(ctx context.Context, id int64, fq service_models.PaginatedFeedQuery) ([]service_models.PostFeed, error)
 	Update(ctx context.Context, post *service_models.Post) error
 	Delete(ctx context.Context, id int64) error
 }
@@ -37,6 +38,10 @@ func (p *postService) Update(ctx context.Context, post *service_models.Post) err
 
 func (p *postService) Delete(ctx context.Context, id int64) error {
 	return p.postRepo.Delete(ctx, id)
+}
+
+func (p *postService) GetUserFeed(ctx context.Context, id int64, fq service_models.PaginatedFeedQuery) ([]service_models.PostFeed, error) {
+	return p.postRepo.GetUserFeed(ctx, id, fq)
 }
 
 func NewPostService(postRepo repository.PostRepository, db *sql.DB) PostService {

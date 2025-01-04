@@ -13,6 +13,7 @@ import (
 type PostRepository interface {
 	Create(ctx context.Context, post *service_models.Post) error
 	GetById(ctx context.Context, id int64) (*service_models.Post, error)
+	GetUserFeed(ctx context.Context, id int64, fq service_models.PaginatedFeedQuery) ([]service_models.PostFeed, error)
 	Delete(ctx context.Context, id int64) error
 	Update(ctx context.Context, post *service_models.Post) error
 	WithTx(tx *sql.Tx) PostRepository
@@ -96,6 +97,53 @@ func (p *postRepository) Update(ctx context.Context, post *service_models.Post) 
 		}
 	}
 	return nil
+}
+
+func (p *postRepository) GetUserFeed(ctx context.Context, id int64, fq service_models.PaginatedFeedQuery) ([]service_models.PostFeed, error) {
+	query := `
+	   SELECT
+	       p.id, p.user_id, p.title, p.content, p.created_at, p.version, p.tags,
+	       u.username,
+	       COUNT(c.id) AS comments_count
+	   FROM posts p
+	   LEFT JOIN comments c ON c.post_id = p.id
+	   LEFT JOIN users u ON p.user_id = u.id
+	   JOIN followers f ON f.follower_id = p.user_id OR p.user_id = $1
+	   WHERE f.user_id = $1 OR p.user_id = $1
+	   GROUP BY p.id, u.username
+	   ORDER BY p.created_at ` + fq.Sort + `
+	   LIMIT $2 OFFSET $3
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.Context.ContextTimeout)
+	defer cancel()
+
+	rows, err := p.dbRead.QueryContext(ctx, query, id, fq.Limit, fq.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var feed []service_models.PostFeed
+	for rows.Next() {
+		var ps service_models.PostFeed
+		err := rows.Scan(
+			&ps.ID,
+			&ps.UserID,
+			&ps.Title,
+			&ps.Content,
+			&ps.CreatedAt,
+			&ps.Version,
+			pq.Array(&ps.Tags),
+			&ps.User.Username,
+			&ps.CommentCount,
+		)
+		if err != nil {
+			return nil, err
+		}
+		feed = append(feed, ps)
+	}
+	return feed, nil
 }
 
 func (p *postRepository) WithTx(tx *sql.Tx) PostRepository {
