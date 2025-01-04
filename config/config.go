@@ -13,6 +13,7 @@ type Config struct {
 	ServerConfig ServerConfig
 	DBConfig     DBConfig
 	Context      Context
+	Pagination   Pagination
 }
 
 type ServerConfig struct {
@@ -41,6 +42,12 @@ type DBConfig struct {
 	MaxIdleConns int           `env:"DB_MAX_IDLE_CONNECTIONS,required"`
 	MaxIdleTime  time.Duration `env:"DB_MAX_IDLE_TIME,required"`
 	Timeout      time.Duration `env:"DB_TIMEOUT,required"`
+}
+
+type Pagination struct {
+	Limit  int    `env:"LIMIT,required"`
+	Offset int    `env:"OFFSET,required"`
+	Sort   string `env:"SORT,required"`
 }
 
 func LoadingConfig() error {
@@ -77,6 +84,14 @@ func LoadingConfig() error {
 
 	config.DBConfig = *dbConfig
 
+	paginationConfig := &Pagination{}
+
+	if err := env.Parse(paginationConfig); err != nil {
+		log.Fatal("error parsing pagination config")
+	}
+
+	config.Pagination = *paginationConfig
+	
 	AppConfig = config
 
 	return nil
