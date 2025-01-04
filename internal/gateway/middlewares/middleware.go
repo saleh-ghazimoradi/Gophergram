@@ -10,12 +10,12 @@ import (
 	"net/http"
 )
 
-type customMiddleware struct {
+type CustomMiddleware struct {
 	postService service.PostService
 	userService service.UserService
 }
 
-func (m *customMiddleware) PostsContextMiddleware(next http.Handler) http.Handler {
+func (m *CustomMiddleware) PostsContextMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id, err := helper.ReadIdParam(r)
 		if err != nil {
@@ -39,7 +39,7 @@ func (m *customMiddleware) PostsContextMiddleware(next http.Handler) http.Handle
 	})
 }
 
-func (m *customMiddleware) UserContextMiddleware(next http.Handler) http.Handler {
+func (m *CustomMiddleware) UserContextMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id, err := helper.ReadIdParam(r)
 		if err != nil {
@@ -64,8 +64,8 @@ func (m *customMiddleware) UserContextMiddleware(next http.Handler) http.Handler
 	})
 }
 
-func NewMiddleware(postService service.PostService, userService service.UserService) *customMiddleware {
-	return &customMiddleware{
+func NewMiddleware(postService service.PostService, userService service.UserService) *CustomMiddleware {
+	return &CustomMiddleware{
 		postService: postService,
 		userService: userService,
 	}
