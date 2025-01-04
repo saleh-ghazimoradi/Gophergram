@@ -15,19 +15,19 @@ type UserKey string
 
 const UserCTX UserKey = "user"
 
-type userHandler struct {
+type UserHandler struct {
 	userService     service.UserService
 	followerService service.FollowerService
 }
 
-func (u *userHandler) GetUserHandler(w http.ResponseWriter, r *http.Request) {
+func (u *UserHandler) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromContext(r)
 	if err := json.JSONResponse(w, http.StatusOK, user); err != nil {
 		helper.InternalServerError(w, r, err)
 	}
 }
 
-func (u *userHandler) FollowUserHandler(w http.ResponseWriter, r *http.Request) {
+func (u *UserHandler) FollowUserHandler(w http.ResponseWriter, r *http.Request) {
 	followedUser := getUserFromContext(r)
 
 	var payload service_models.FollowUser
@@ -51,7 +51,7 @@ func (u *userHandler) FollowUserHandler(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-func (u *userHandler) UnFollowUserHandler(w http.ResponseWriter, r *http.Request) {
+func (u *UserHandler) UnFollowUserHandler(w http.ResponseWriter, r *http.Request) {
 	unFollowedUser := getUserFromContext(r)
 
 	var payload service_models.FollowUser
@@ -74,8 +74,8 @@ func getUserFromContext(r *http.Request) *service_models.User {
 	return user
 }
 
-func NewUserHandler(userService service.UserService, followService service.FollowerService) *userHandler {
-	return &userHandler{
+func NewUserHandler(userService service.UserService, followService service.FollowerService) *UserHandler {
+	return &UserHandler{
 		userService:     userService,
 		followerService: followService,
 	}
