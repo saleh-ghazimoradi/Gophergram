@@ -12,6 +12,7 @@ type Post struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	Version   int       `json:"version"`
 	Comments  []Comment `json:"comments"`
+	User      User      `json:"user"`
 }
 
 type CreatePostPayload struct {
@@ -23,4 +24,9 @@ type CreatePostPayload struct {
 type UpdatePostPayload struct {
 	Title   *string `json:"title" validate:"omitempty,max=200"`
 	Content *string `json:"content" validate:"omitempty,max=1000"`
+}
+
+type PostFeed struct {
+	Post
+	CommentCount int `json:"comment_count"`
 }
