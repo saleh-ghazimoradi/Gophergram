@@ -15,6 +15,21 @@ type FeedHandler struct {
 	postService service.PostService
 }
 
+// GetUserFeedHandler godoc
+//
+//	@Summary		Fetches the user feed
+//	@Description	Fetches the user feed
+//	@Tags			feed
+//	@Accept			json
+//	@Produce		json
+//	@Param			limit	query		int		false	"Limit"
+//	@Param			offset	query		int		false	"Offset"
+//	@Param			sort	query		string	false	"Sort"
+//	@Success		200		{object}	[]service_models.PostFeed
+//	@Failure		400		{object}	error
+//	@Failure		500		{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/v1/users/feed [get]
 func (f *FeedHandler) GetUserFeedHandler(w http.ResponseWriter, r *http.Request) {
 	p := service_models.PaginatedFeedQuery{
 		Limit:  config.AppConfig.Pagination.Limit,

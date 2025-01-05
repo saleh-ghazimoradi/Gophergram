@@ -23,6 +23,7 @@ type ServerConfig struct {
 	ReadTimeout  time.Duration `env:"SERVER_READ_TIMEOUT,required"`
 	WriteTimeout time.Duration `env:"SERVER_WRITE_TIMEOUT,required"`
 	Env          string        `env:"SERVER_ENV,required"`
+	APIURL       string        `env:"SERVER_API_URL,required"`
 }
 
 type Context struct {
@@ -91,7 +92,7 @@ func LoadingConfig() error {
 	}
 
 	config.Pagination = *paginationConfig
-	
+
 	AppConfig = config
 
 	return nil

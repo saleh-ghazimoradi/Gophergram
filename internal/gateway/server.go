@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/julienschmidt/httprouter"
 	"github.com/saleh-ghazimoradi/Gophergram/config"
+	"github.com/saleh-ghazimoradi/Gophergram/docs"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/gateway/routes"
 	"github.com/saleh-ghazimoradi/Gophergram/logger"
 	"github.com/saleh-ghazimoradi/Gophergram/utils"
@@ -19,6 +20,10 @@ import (
 var wg sync.WaitGroup
 
 func Server() error {
+
+	docs.SwaggerInfo.Version = config.AppConfig.ServerConfig.Version
+	docs.SwaggerInfo.Host = config.AppConfig.ServerConfig.APIURL
+	
 	db, err := utils.PostConnection()
 	if err != nil {
 		return err

@@ -2,11 +2,15 @@ package routes
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/julienschmidt/httprouter"
+	"github.com/saleh-ghazimoradi/Gophergram/config"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/gateway/handlers"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/gateway/middlewares"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/repository"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/service"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
+	"net/http"
 )
 
 func RegisterRoutes(router *httprouter.Router, db *sql.DB) {
@@ -31,4 +35,7 @@ func RegisterRoutes(router *httprouter.Router, db *sql.DB) {
 	registerHealthRoutes(router, health)
 	registerUserRoutes(router, userHandler, middleware, feedHandler)
 	registerPostRoutes(router, postHandler, middleware)
+
+	docsURL := fmt.Sprintf("%s/swagger/doc.json", config.AppConfig.ServerConfig.Port)
+	router.Handler(http.MethodGet, "/swagger/*any", httpSwagger.Handler(httpSwagger.URL(docsURL)))
 }

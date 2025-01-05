@@ -9,6 +9,14 @@ import (
 
 type HealthHandler struct{}
 
+// Health provides the health status of the application.
+//
+//	@Summary		Healthcheck
+//	@Description	Healthcheck endpoint
+//	@Tags			ops
+//	@Produce		json
+//	@Success		200	{object}	string	"ok"
+//	@Router			/v1/health [get]
 func (h *HealthHandler) Health(w http.ResponseWriter, r *http.Request) {
 	data := map[string]string{
 		"status":  "ok",

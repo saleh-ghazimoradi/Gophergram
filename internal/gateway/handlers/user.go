@@ -20,6 +20,20 @@ type UserHandler struct {
 	followerService service.FollowerService
 }
 
+// GetUserHandler retrieves the current user from the context.
+//
+//	@Summary		Fetches a user profile
+//	@Description	Fetches a user profile by ID
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		int	true	"User ID"
+//	@Success		200	{object}	service_models.User
+//	@Failure		400	{object}	error
+//	@Failure		404	{object}	error
+//	@Failure		500	{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/v1/users/{id} [get]
 func (u *UserHandler) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromContext(r)
 	if err := json.JSONResponse(w, http.StatusOK, user); err != nil {
@@ -27,6 +41,19 @@ func (u *UserHandler) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// FollowUserHandler allows a user to follow another user.
+//
+//	@Summary		Follows a user
+//	@Description	Follows a user by ID
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			userID	path		int		true	"User ID"
+//	@Success		204		{string}	string	"User followed"
+//	@Failure		400		{object}	error	"User payload missing"
+//	@Failure		404		{object}	error	"User not found"
+//	@Security		ApiKeyAuth
+//	@Router			/v1/users/{id}/follow [put]
 func (u *UserHandler) FollowUserHandler(w http.ResponseWriter, r *http.Request) {
 	followedUser := getUserFromContext(r)
 
@@ -51,6 +78,19 @@ func (u *UserHandler) FollowUserHandler(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
+// UnFollowUserHandler allows a user to unfollow another user.
+//
+//	@Summary		Unfollow a user
+//	@Description	Unfollow a user by ID
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			userID	path		int		true	"User ID"
+//	@Success		204		{string}	string	"User unfollowed"
+//	@Failure		400		{object}	error	"User payload missing"
+//	@Failure		404		{object}	error	"User not found"
+//	@Security		ApiKeyAuth
+//	@Router			/v1/users/{id}/unfollow [put]
 func (u *UserHandler) UnFollowUserHandler(w http.ResponseWriter, r *http.Request) {
 	unFollowedUser := getUserFromContext(r)
 
