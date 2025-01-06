@@ -87,6 +87,23 @@ definitions:
       version:
         type: integer
     type: object
+  service_models.RegisterUserPayload:
+    properties:
+      email:
+        maxLength: 255
+        type: string
+      password:
+        maxLength: 32
+        minLength: 3
+        type: string
+      username:
+        maxLength: 50
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
   service_models.UpdatePostPayload:
     properties:
       content:
@@ -352,6 +369,36 @@ paths:
       summary: Unfollow a user
       tags:
       - users
+  /v1/users/authentication:
+    post:
+      consumes:
+      - application/json
+      description: Register a user
+      parameters:
+      - description: User credentials
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/service_models.RegisterUserPayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: User registered
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Register a user
+      tags:
+      - authentication
   /v1/users/feed:
     get:
       consumes:

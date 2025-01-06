@@ -6,11 +6,13 @@ import (
 	"errors"
 	"github.com/saleh-ghazimoradi/Gophergram/config"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/service/service_models"
+	"time"
 )
 
 type UserRepository interface {
 	Create(ctx context.Context, user *service_models.User) error
 	GetById(ctx context.Context, id int64) (*service_models.User, error)
+	CreateUserInvitation(ctx context.Context, token string, exp time.Duration, id int64) error
 	WithTx(tx *sql.Tx) UserRepository
 }
 
@@ -26,9 +28,16 @@ func (u *userRepository) Create(ctx context.Context, user *service_models.User) 
 	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.Context.ContextTimeout)
 	defer cancel()
 
-	args := []any{user.Username, user.Password, user.Email}
+	args := []any{user.Username, user.Password.Hash, user.Email}
 	if err := u.dbWrite.QueryRowContext(ctx, query, args...).Scan(&user.ID, &user.CreatedAt); err != nil {
-		return err
+		switch {
+		case err.Error() == `pq: duplicate key value violates unique constraint "users_username_key"`:
+			return ErrDuplicateUsername
+		case err.Error() == `pq: duplicate key value violates unique constraint "users_email_key"`:
+			return ErrDuplicateEmail
+		default:
+			return err
+		}
 	}
 
 	return nil
@@ -49,6 +58,18 @@ func (u *userRepository) GetById(ctx context.Context, id int64) (*service_models
 		}
 	}
 	return &user, nil
+}
+
+func (u *userRepository) CreateUserInvitation(ctx context.Context, token string, exp time.Duration, id int64) error {
+	query := `INSERT INTO user_invitations (token, user_id, expiry) VALUES ($1, $2, $3)`
+	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.Context.ContextTimeout)
+	defer cancel()
+
+	args := []any{token, id, time.Now().Add(exp)}
+	if _, err := u.dbWrite.ExecContext(ctx, query, args...); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (u *userRepository) WithTx(tx *sql.Tx) UserRepository {

@@ -31,9 +31,10 @@ func RegisterRoutes(router *httprouter.Router, db *sql.DB) {
 	feedHandler := handlers.NewFeedHandler(postService)
 	userHandler := handlers.NewUserHandler(userService, followService)
 	postHandler := handlers.NewPostHandler(postService, commentService)
+	authHandler := handlers.NewAuthHandler(userService)
 
 	registerHealthRoutes(router, health)
-	registerUserRoutes(router, userHandler, middleware, feedHandler)
+	registerUserRoutes(router, userHandler, authHandler, middleware, feedHandler)
 	registerPostRoutes(router, postHandler, middleware)
 
 	docsURL := fmt.Sprintf("%s/swagger/doc.json", config.AppConfig.ServerConfig.Port)

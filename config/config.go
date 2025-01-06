@@ -14,6 +14,7 @@ type Config struct {
 	DBConfig     DBConfig
 	Context      Context
 	Pagination   Pagination
+	Mail         Mail
 }
 
 type ServerConfig struct {
@@ -28,6 +29,10 @@ type ServerConfig struct {
 
 type Context struct {
 	ContextTimeout time.Duration `env:"CONTEXT_TIME_OUT,required"`
+}
+
+type Mail struct {
+	Exp time.Duration `env:"TOKEN_EXPIRATION,required"`
 }
 
 type DBConfig struct {
@@ -92,6 +97,12 @@ func LoadingConfig() error {
 	}
 
 	config.Pagination = *paginationConfig
+
+	mailConfig := &Mail{}
+	if err := env.Parse(mailConfig); err != nil {
+		log.Fatal("error parsing token config")
+	}
+	config.Mail = *mailConfig
 
 	AppConfig = config
 
