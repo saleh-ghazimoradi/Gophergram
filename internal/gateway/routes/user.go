@@ -15,4 +15,5 @@ func registerUserRoutes(router *httprouter.Router, user *handlers.UserHandler, a
 	router.Handler(http.MethodPut, "/v1/users/:id/unfollow", userMiddleware(http.HandlerFunc(user.UnFollowUserHandler)))
 	router.HandlerFunc(http.MethodGet, "/v1/user/feed", feed.GetUserFeedHandler)
 	router.HandlerFunc(http.MethodPost, "/v1/users/authentication", auth.RegisterUserHandler)
+	router.HandlerFunc(http.MethodPut, "/v1/user/activate/:token", user.ActivateUserHandler)
 }

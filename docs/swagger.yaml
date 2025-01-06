@@ -121,6 +121,8 @@ definitions:
         type: string
       id:
         type: integer
+      is_active:
+        type: boolean
       username:
         type: string
     type: object
@@ -279,6 +281,35 @@ paths:
       summary: Updates a post
       tags:
       - posts
+  /v1/user/activate/token:
+    put:
+      consumes:
+      - application/json
+      description: Unfollow a user by ID
+      parameters:
+      - description: Invitation token
+        in: path
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: User activated
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Activates the registered users by invitation token
+      tags:
+      - users
   /v1/users/{id}:
     get:
       consumes:

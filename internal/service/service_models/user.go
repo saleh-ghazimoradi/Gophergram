@@ -11,12 +11,18 @@ type User struct {
 	Email     string    `json:"email"`
 	Password  Password  `json:"-"`
 	CreatedAt time.Time `json:"created_at"`
+	IsActive  bool      `json:"is_active"`
 }
 
 type RegisterUserPayload struct {
 	Username string `json:"username" validate:"required,max=50"`
 	Email    string `json:"email" validate:"required,email,max=255"`
 	Password string `json:"password" validate:"required,min=3,max=32"`
+}
+
+type UserWithToken struct {
+	*User
+	Token string `json:"token"`
 }
 
 type Password struct {

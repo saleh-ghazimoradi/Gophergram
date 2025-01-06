@@ -26,7 +26,7 @@ type AuthHandler struct {
 //	@Accept			json
 //	@Produce		json
 //	@Param			payload	body		service_models.RegisterUserPayload	true	"User credentials"
-//	@Success		201		{string}	service_models.User					"User registered"
+//	@Success		201		{string}	service_models.UserWithToken		"User registered"
 //	@Failure		400		{object}	error
 //	@Failure		404		{object}	error
 //	@Security		ApiKeyAuth
@@ -69,7 +69,12 @@ func (a *AuthHandler) RegisterUserHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if err := json.JSONResponse(w, http.StatusCreated, nil); err != nil {
+	userWithToken := &service_models.UserWithToken{
+		User:  user,
+		Token: plainToken,
+	}
+
+	if err := json.JSONResponse(w, http.StatusCreated, userWithToken); err != nil {
 		helper.InternalServerError(w, r, err)
 	}
 

@@ -15,3 +15,12 @@ func ReadIdParam(r *http.Request) (int64, error) {
 	}
 	return id, nil
 }
+
+func ReadTokenParam(r *http.Request) (string, error) {
+	params := httprouter.ParamsFromContext(r.Context())
+	token := params.ByName("token")
+	if token == "" {
+		return "", errors.New("invalid or missing token")
+	}
+	return token, nil
+}

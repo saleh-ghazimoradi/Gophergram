@@ -109,6 +109,40 @@ func (u *UserHandler) UnFollowUserHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
+// ActivateUserHandler Activates the registered users
+//
+//	@Summary		Activates the registered users by invitation token
+//	@Description	Unfollow a user by ID
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			token	path		string	true	"Invitation token"
+//	@Success		204		{string}	string	"User activated"
+//	@Failure		400		{object}	error
+//	@Failure		500		{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/v1/user/activate/token [put]
+func (u *UserHandler) ActivateUserHandler(w http.ResponseWriter, r *http.Request) {
+	token, err := helper.ReadTokenParam(r)
+	if err != nil {
+		helper.BadRequestResponse(w, r, err)
+	}
+
+	if err := u.userService.Activate(context.Background(), token); err != nil {
+		switch err {
+		case repository.ErrsNotFound:
+			helper.NotFoundResponse(w, r, err)
+		default:
+			helper.InternalServerError(w, r, err)
+		}
+		return
+	}
+
+	if err := json.JSONResponse(w, http.StatusNoContent, ""); err != nil {
+		helper.InternalServerError(w, r, err)
+	}
+}
+
 func getUserFromContext(r *http.Request) *service_models.User {
 	user, _ := r.Context().Value(UserCTX).(*service_models.User)
 	return user

@@ -2,7 +2,9 @@ package repository
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/hex"
 	"errors"
 	"github.com/saleh-ghazimoradi/Gophergram/config"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/service/service_models"
@@ -13,6 +15,9 @@ type UserRepository interface {
 	Create(ctx context.Context, user *service_models.User) error
 	GetById(ctx context.Context, id int64) (*service_models.User, error)
 	CreateUserInvitation(ctx context.Context, token string, exp time.Duration, id int64) error
+	GetUserFromInvitation(ctx context.Context, token string) (*service_models.User, error)
+	UpdateUserInvitation(ctx context.Context, user *service_models.User) error
+	DeleteUserInvitation(ctx context.Context, id int64) error
 	WithTx(tx *sql.Tx) UserRepository
 }
 
@@ -69,6 +74,59 @@ func (u *userRepository) CreateUserInvitation(ctx context.Context, token string,
 	if _, err := u.dbWrite.ExecContext(ctx, query, args...); err != nil {
 		return err
 	}
+	return nil
+}
+
+func (u *userRepository) GetUserFromInvitation(ctx context.Context, token string) (*service_models.User, error) {
+	query := `SELECT u.id, u.username, u.email, u.created_at, u.is_active FROM users u JOIN user_invitations ui ON u.id = ui.user_id WHERE ui.token = $1 AND ui.expiry > $2`
+	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.Context.ContextTimeout)
+	defer cancel()
+
+	hash := sha256.Sum256([]byte(token))
+	hashToken := hex.EncodeToString(hash[:])
+	user := &service_models.User{}
+
+	if err := u.dbRead.QueryRowContext(ctx, query, hashToken, time.Now()).Scan(
+		&user.ID,
+		&user.Username,
+		&user.Email,
+		&user.CreatedAt,
+		&user.IsActive,
+	); err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return nil, ErrsNotFound
+		default:
+			return nil, err
+		}
+	}
+	return user, nil
+}
+
+func (u *userRepository) DeleteUserInvitation(ctx context.Context, id int64) error {
+	query := `DELETE FROM user_invitations WHERE user_id = $1`
+
+	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.Context.ContextTimeout)
+	defer cancel()
+
+	_, err := u.dbWrite.ExecContext(ctx, query, id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (u *userRepository) UpdateUserInvitation(ctx context.Context, user *service_models.User) error {
+	query := `UPDATE users SET username = $1, email = $2, is_active = $3 WHERE id = $4`
+
+	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.Context.ContextTimeout)
+	defer cancel()
+
+	_, err := u.dbWrite.ExecContext(ctx, query, user.Username, user.Email, user.IsActive, user.ID)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

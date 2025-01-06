@@ -13,6 +13,7 @@ type UserService interface {
 	Create(ctx context.Context, user *service_models.User) error
 	GetById(ctx context.Context, id int64) (*service_models.User, error)
 	CreateAndInvite(ctx context.Context, user *service_models.User, token string, invitationExp time.Duration) error
+	Activate(ctx context.Context, token string) error
 }
 
 type userService struct {
@@ -38,6 +39,23 @@ func (u *userService) CreateAndInvite(ctx context.Context, user *service_models.
 			return err
 		}
 		if err := userRepoWithTx.CreateUserInvitation(ctx, token, invitationExp, user.ID); err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
+func (u *userService) Activate(ctx context.Context, token string) error {
+	return utils.WithTransaction(ctx, u.db, func(tx *sql.Tx) error {
+		user, err := u.userRepo.GetUserFromInvitation(ctx, token)
+		if err != nil {
+			return err
+		}
+		user.IsActive = true
+		if err = u.userRepo.UpdateUserInvitation(ctx, user); err != nil {
+			return err
+		}
+		if err = u.userRepo.DeleteUserInvitation(ctx, user.ID); err != nil {
 			return err
 		}
 		return nil
