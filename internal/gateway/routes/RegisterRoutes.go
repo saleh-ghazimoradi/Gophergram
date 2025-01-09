@@ -25,13 +25,14 @@ func RegisterRoutes(router *httprouter.Router, db *sql.DB) {
 	followService := service.NewFollowerService(followRepo)
 	postService := service.NewPostService(postRepo, db)
 	commentService := service.NewCommentService(commentRepo)
+	mailService := service.NewMailer(config.AppConfig.Mail.ApiKey, config.AppConfig.Mail.FromEmail)
 
 	middleware := middlewares.NewMiddleware(postService, userService)
 
 	feedHandler := handlers.NewFeedHandler(postService)
 	userHandler := handlers.NewUserHandler(userService, followService)
 	postHandler := handlers.NewPostHandler(postService, commentService)
-	authHandler := handlers.NewAuthHandler(userService)
+	authHandler := handlers.NewAuthHandler(userService, mailService)
 
 	registerHealthRoutes(router, health)
 	registerUserRoutes(router, userHandler, authHandler, middleware, feedHandler)

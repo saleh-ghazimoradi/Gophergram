@@ -18,6 +18,7 @@ type UserRepository interface {
 	GetUserFromInvitation(ctx context.Context, token string) (*service_models.User, error)
 	UpdateUserInvitation(ctx context.Context, user *service_models.User) error
 	DeleteUserInvitation(ctx context.Context, id int64) error
+	Delete(ctx context.Context, id int64) error
 	WithTx(tx *sql.Tx) UserRepository
 }
 
@@ -127,6 +128,17 @@ func (u *userRepository) UpdateUserInvitation(ctx context.Context, user *service
 		return err
 	}
 
+	return nil
+}
+
+func (u *userRepository) Delete(ctx context.Context, id int64) error {
+	query := `DELETE FROM user_invitations WHERE user_id = $1`
+	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.Context.ContextTimeout)
+	defer cancel()
+	_, err := u.dbWrite.ExecContext(ctx, query, id)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

@@ -32,7 +32,13 @@ type Context struct {
 }
 
 type Mail struct {
-	Exp time.Duration `env:"TOKEN_EXPIRATION,required"`
+	Exp                 time.Duration `env:"TOKEN_EXPIRATION,required"`
+	FromName            string        `env:"MAIL_FROM_NAME,required"`
+	MaxRetries          uint          `env:"MAIL_MAX_RETRIES,required"`
+	UserWelcomeTemplate string        `env:"TOKEN_USER_WELCOME_TEMPLATE,required"`
+	FromEmail           string        `env:"FROM_EMAIL,required"`
+	ApiKey              string        `env:"API_KEY,required"`
+	FrontendURL         string        `env:"FRONTEND_URL,required"`
 }
 
 type DBConfig struct {

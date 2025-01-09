@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/saleh-ghazimoradi/Gophergram/config"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/gateway/helper"
@@ -11,11 +12,13 @@ import (
 	"github.com/saleh-ghazimoradi/Gophergram/internal/repository"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/service"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/service/service_models"
+	"github.com/saleh-ghazimoradi/Gophergram/logger"
 	"net/http"
 )
 
 type AuthHandler struct {
 	userService service.UserService
+	mailService service.Mailer
 }
 
 // RegisterUserHandler Register a user
@@ -74,14 +77,41 @@ func (a *AuthHandler) RegisterUserHandler(w http.ResponseWriter, r *http.Request
 		Token: plainToken,
 	}
 
+	activationURL := fmt.Sprintf("%s/confirm/%s", config.AppConfig.Mail.FrontendURL, plainToken)
+	isProdEnv := config.AppConfig.ServerConfig.Env == "production"
+	vars := struct {
+		Username      string
+		ActivationURL string
+	}{
+		Username:      user.Username,
+		ActivationURL: activationURL,
+	}
+
+	fmt.Println(config.AppConfig.Mail.UserWelcomeTemplate)
+
+	status, err := a.mailService.Send(config.AppConfig.Mail.UserWelcomeTemplate, user.Username, user.Email, vars, !isProdEnv)
+	if err != nil {
+		logger.Logger.Error("error sending welcome email", "error", err)
+
+		// rollback user creation if email fails (SAGA pattern)
+		if err := a.userService.Delete(context.Background(), user.ID); err != nil {
+			logger.Logger.Error("error deleting user", "error", err)
+		}
+		helper.InternalServerError(w, r, err)
+		return
+	}
+
+	logger.Logger.Info("Email sent", "status code", status)
+
 	if err := json.JSONResponse(w, http.StatusCreated, userWithToken); err != nil {
 		helper.InternalServerError(w, r, err)
 	}
 
 }
 
-func NewAuthHandler(userService service.UserService) *AuthHandler {
+func NewAuthHandler(userService service.UserService, mailService service.Mailer) *AuthHandler {
 	return &AuthHandler{
 		userService: userService,
+		mailService: mailService,
 	}
 }
