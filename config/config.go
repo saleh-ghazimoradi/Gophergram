@@ -10,11 +10,12 @@ import (
 var AppConfig *Config
 
 type Config struct {
-	ServerConfig ServerConfig
-	DBConfig     DBConfig
-	Context      Context
-	Pagination   Pagination
-	Mail         Mail
+	ServerConfig   ServerConfig
+	DBConfig       DBConfig
+	Context        Context
+	Pagination     Pagination
+	Mail           Mail
+	Authentication Authentication
 }
 
 type ServerConfig struct {
@@ -29,6 +30,11 @@ type ServerConfig struct {
 
 type Context struct {
 	ContextTimeout time.Duration `env:"CONTEXT_TIME_OUT,required"`
+}
+
+type Authentication struct {
+	Username string `env:"USERNAME,required"`
+	Password string `env:"PASSWORD,required"`
 }
 
 type Mail struct {
@@ -109,6 +115,12 @@ func LoadingConfig() error {
 		log.Fatal("error parsing token config")
 	}
 	config.Mail = *mailConfig
+
+	authConfig := &Authentication{}
+	if err := env.Parse(authConfig); err != nil {
+		log.Fatal("error parsing token config")
+	}
+	config.Authentication = *authConfig
 
 	AppConfig = config
 

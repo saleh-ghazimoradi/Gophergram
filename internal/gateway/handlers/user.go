@@ -75,6 +75,7 @@ func (u *UserHandler) FollowUserHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if err := json.JSONResponse(w, http.StatusNoContent, nil); err != nil {
+		helper.InternalServerError(w, r, err)
 	}
 }
 
@@ -106,6 +107,7 @@ func (u *UserHandler) UnFollowUserHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	if err := json.JSONResponse(w, http.StatusNoContent, nil); err != nil {
+		helper.InternalServerError(w, r, err)
 	}
 }
 

@@ -34,7 +34,7 @@ func RegisterRoutes(router *httprouter.Router, db *sql.DB) {
 	postHandler := handlers.NewPostHandler(postService, commentService)
 	authHandler := handlers.NewAuthHandler(userService, mailService)
 
-	registerHealthRoutes(router, health)
+	registerHealthRoutes(router, health, middleware)
 	registerUserRoutes(router, userHandler, authHandler, middleware, feedHandler)
 	registerPostRoutes(router, postHandler, middleware)
 

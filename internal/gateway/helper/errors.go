@@ -26,23 +26,23 @@ func ConflictResponse(w http.ResponseWriter, r *http.Request, err error) {
 	json.WriteJSONError(w, http.StatusConflict, err.Error())
 }
 
-func unauthorizedErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
+func UnauthorizedErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 	logger.Logger.Warn("unauthorized error", "method", r.Method, "path", r.URL.Path, "error", err.Error())
 	json.WriteJSONError(w, http.StatusUnauthorized, "unauthorized")
 }
 
-func unauthorizedBasicErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
+func UnauthorizedBasicErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 	logger.Logger.Warn("unauthorized basic error", "method", r.Method, "path", r.URL.Path, "error", err.Error())
 	w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
 	json.WriteJSONError(w, http.StatusUnauthorized, "unauthorized")
 }
 
-func forbiddenResponse(w http.ResponseWriter, r *http.Request) {
+func ForbiddenResponse(w http.ResponseWriter, r *http.Request) {
 	logger.Logger.Warn("forbidden", "method", r.Method, "path", r.URL.Path)
 	json.WriteJSONError(w, http.StatusForbidden, "forbidden")
 }
 
-func rateLimitExceededResponse(w http.ResponseWriter, r *http.Request, retryAfter string) {
+func RateLimitExceededResponse(w http.ResponseWriter, r *http.Request, retryAfter string) {
 	logger.Logger.Warn("rate limit exceeded", "method", r.Method, "path", r.URL.Path)
 	w.Header().Set("Retry_After", retryAfter)
 	json.WriteJSONError(w, http.StatusTooManyRequests, "rate limit exceeded, retry after: "+retryAfter)
