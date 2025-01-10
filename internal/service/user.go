@@ -12,6 +12,7 @@ import (
 type UserService interface {
 	Create(ctx context.Context, user *service_models.User) error
 	GetById(ctx context.Context, id int64) (*service_models.User, error)
+	GetByEmail(ctx context.Context, email string) (*service_models.User, error)
 	CreateAndInvite(ctx context.Context, user *service_models.User, token string, invitationExp time.Duration) error
 	Delete(ctx context.Context, id int64) error
 	Activate(ctx context.Context, token string) error
@@ -73,6 +74,10 @@ func (u *userService) Delete(ctx context.Context, id int64) error {
 		}
 		return nil
 	})
+}
+
+func (u *userService) GetByEmail(ctx context.Context, email string) (*service_models.User, error) {
+	return u.userRepo.GetByEmail(ctx, email)
 }
 
 func NewUserService(userRepo repository.UserRepository, db *sql.DB) UserService {

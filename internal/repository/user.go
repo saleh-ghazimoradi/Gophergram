@@ -16,6 +16,7 @@ type UserRepository interface {
 	GetById(ctx context.Context, id int64) (*service_models.User, error)
 	CreateUserInvitation(ctx context.Context, token string, exp time.Duration, id int64) error
 	GetUserFromInvitation(ctx context.Context, token string) (*service_models.User, error)
+	GetByEmail(ctx context.Context, email string) (*service_models.User, error)
 	UpdateUserInvitation(ctx context.Context, user *service_models.User) error
 	DeleteUserInvitation(ctx context.Context, id int64) error
 	Delete(ctx context.Context, id int64) error
@@ -50,11 +51,11 @@ func (u *userRepository) Create(ctx context.Context, user *service_models.User) 
 }
 
 func (u *userRepository) GetById(ctx context.Context, id int64) (*service_models.User, error) {
-	query := `SELECT id, username, email, password, created_at FROM users WHERE id = $1`
+	query := `SELECT id, username, email, password, created_at FROM users WHERE id = $1 AND is_active = true`
 	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.Context.ContextTimeout)
 	defer cancel()
 	var user service_models.User
-	err := u.dbRead.QueryRowContext(ctx, query, id).Scan(&user.ID, &user.Username, &user.Email, &user.Password, &user.CreatedAt)
+	err := u.dbRead.QueryRowContext(ctx, query, id).Scan(&user.ID, &user.Username, &user.Email, &user.Password.Hash, &user.CreatedAt)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -140,6 +141,35 @@ func (u *userRepository) Delete(ctx context.Context, id int64) error {
 		return err
 	}
 	return nil
+}
+
+func (u *userRepository) GetByEmail(ctx context.Context, email string) (*service_models.User, error) {
+	query := `
+		SELECT id, username, email, password, created_at FROM users
+		WHERE email = $1 AND is_active = true
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.Context.ContextTimeout)
+	defer cancel()
+
+	user := &service_models.User{}
+	err := u.dbRead.QueryRowContext(ctx, query, email).Scan(
+		&user.ID,
+		&user.Username,
+		&user.Email,
+		&user.Password.Hash,
+		&user.CreatedAt,
+	)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return nil, ErrsNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	return user, nil
 }
 
 func (u *userRepository) WithTx(tx *sql.Tx) UserRepository {

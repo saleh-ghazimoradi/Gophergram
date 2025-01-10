@@ -56,14 +56,13 @@ func (u *UserHandler) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 //	@Router			/v1/users/{id}/follow [put]
 func (u *UserHandler) FollowUserHandler(w http.ResponseWriter, r *http.Request) {
 	followedUser := getUserFromContext(r)
-
-	var payload service_models.FollowUser
-	if err := json.ReadJSON(w, r, &payload); err != nil {
+	followedID, err := helper.ReadUserIdParam(r)
+	if err != nil {
 		helper.BadRequestResponse(w, r, err)
 		return
 	}
 
-	if err := u.followerService.Follow(context.Background(), followedUser.ID, payload.UserID); err != nil {
+	if err := u.followerService.Follow(context.Background(), followedUser.ID, followedID); err != nil {
 		switch {
 		case errors.Is(err, repository.ErrsConflict):
 			helper.ConflictResponse(w, r, err)
@@ -93,15 +92,15 @@ func (u *UserHandler) FollowUserHandler(w http.ResponseWriter, r *http.Request) 
 //	@Security		ApiKeyAuth
 //	@Router			/v1/users/{id}/unfollow [put]
 func (u *UserHandler) UnFollowUserHandler(w http.ResponseWriter, r *http.Request) {
-	unFollowedUser := getUserFromContext(r)
+	followedUser := getUserFromContext(r)
 
-	var payload service_models.FollowUser
-	if err := json.ReadJSON(w, r, &payload); err != nil {
+	unfollowedID, err := helper.ReadUserIdParam(r)
+	if err != nil {
 		helper.BadRequestResponse(w, r, err)
 		return
 	}
 
-	if err := u.followerService.Unfollow(context.Background(), unFollowedUser.ID, payload.UserID); err != nil {
+	if err := u.followerService.Unfollow(context.Background(), followedUser.ID, unfollowedID); err != nil {
 		helper.InternalServerError(w, r, err)
 		return
 	}
@@ -128,9 +127,11 @@ func (u *UserHandler) ActivateUserHandler(w http.ResponseWriter, r *http.Request
 	token, err := helper.ReadTokenParam(r)
 	if err != nil {
 		helper.BadRequestResponse(w, r, err)
+		return
 	}
 
-	if err := u.userService.Activate(context.Background(), token); err != nil {
+	err = u.userService.Activate(context.Background(), token)
+	if err != nil {
 		switch err {
 		case repository.ErrsNotFound:
 			helper.NotFoundResponse(w, r, err)
@@ -140,7 +141,7 @@ func (u *UserHandler) ActivateUserHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if err := json.JSONResponse(w, http.StatusNoContent, ""); err != nil {
+	if err = json.JSONResponse(w, http.StatusOK, nil); err != nil {
 		helper.InternalServerError(w, r, err)
 	}
 }

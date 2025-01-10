@@ -31,6 +31,19 @@ definitions:
     - content
     - title
     type: object
+  service_models.CreateUserTokenPayload:
+    properties:
+      email:
+        maxLength: 255
+        type: string
+      password:
+        maxLength: 32
+        minLength: 3
+        type: string
+    required:
+    - email
+    - password
+    type: object
   service_models.Post:
     properties:
       comments:
@@ -138,6 +151,67 @@ info:
   termsOfService: http://swagger.io/terms/
   title: Gophergram API
 paths:
+  /v1/authentication/token:
+    post:
+      consumes:
+      - application/json
+      description: Creates a token for a user
+      parameters:
+      - description: User credentials
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/service_models.CreateUserTokenPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Token
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Creates a token
+      tags:
+      - authentication
+  /v1/authentication/user:
+    post:
+      consumes:
+      - application/json
+      description: Register a user
+      parameters:
+      - description: User credentials
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/service_models.RegisterUserPayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: User registered
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Register a user
+      tags:
+      - authentication
   /v1/health:
     get:
       description: Healthcheck endpoint
@@ -400,36 +474,6 @@ paths:
       summary: Unfollow a user
       tags:
       - users
-  /v1/users/authentication:
-    post:
-      consumes:
-      - application/json
-      description: Register a user
-      parameters:
-      - description: User credentials
-        in: body
-        name: payload
-        required: true
-        schema:
-          $ref: '#/definitions/service_models.RegisterUserPayload'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: User registered
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema: {}
-        "404":
-          description: Not Found
-          schema: {}
-      security:
-      - ApiKeyAuth: []
-      summary: Register a user
-      tags:
-      - authentication
   /v1/users/feed:
     get:
       consumes:

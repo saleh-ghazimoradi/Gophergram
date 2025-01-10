@@ -25,6 +25,11 @@ type UserWithToken struct {
 	Token string `json:"token"`
 }
 
+type CreateUserTokenPayload struct {
+	Email    string `json:"email" validate:"required,email,max=255"`
+	Password string `json:"password" validate:"required,min=3,max=32"`
+}
+
 type Password struct {
 	Text *string
 	Hash []byte

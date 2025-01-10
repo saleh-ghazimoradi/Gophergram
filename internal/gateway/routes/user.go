@@ -7,13 +7,13 @@ import (
 	"net/http"
 )
 
-func registerUserRoutes(router *httprouter.Router, user *handlers.UserHandler, auth *handlers.AuthHandler, middleware *middlewares.CustomMiddleware, feed *handlers.FeedHandler) {
-	userMiddleware := middleware.UserContextMiddleware
+func registerUserRoutes(router *httprouter.Router, user *handlers.UserHandler, middleware *middlewares.CustomMiddleware, feed *handlers.FeedHandler) {
+	authTokenMiddleware := middleware.AuthTokenMiddleware
 
-	router.Handler(http.MethodGet, "/v1/users/:id", userMiddleware(http.HandlerFunc(user.GetUserHandler)))
-	router.Handler(http.MethodPut, "/v1/users/:id/follow", userMiddleware(http.HandlerFunc(user.FollowUserHandler)))
-	router.Handler(http.MethodPut, "/v1/users/:id/unfollow", userMiddleware(http.HandlerFunc(user.UnFollowUserHandler)))
-	router.HandlerFunc(http.MethodGet, "/v1/user/feed", feed.GetUserFeedHandler)
-	router.HandlerFunc(http.MethodPost, "/v1/users/authentication", auth.RegisterUserHandler)
+	router.Handler(http.MethodGet, "/v1/users/:id", authTokenMiddleware(http.HandlerFunc(user.GetUserHandler)))
+	router.Handler(http.MethodPut, "/v1/users/:id/follow", authTokenMiddleware(http.HandlerFunc(user.FollowUserHandler)))
+	router.Handler(http.MethodPut, "/v1/users/:id/unfollow", authTokenMiddleware(http.HandlerFunc(user.UnFollowUserHandler)))
+
+	router.Handler(http.MethodGet, "/v1/user/feed", authTokenMiddleware(http.HandlerFunc(feed.GetUserFeedHandler)))
 	router.HandlerFunc(http.MethodPut, "/v1/user/activate/:token", user.ActivateUserHandler)
 }

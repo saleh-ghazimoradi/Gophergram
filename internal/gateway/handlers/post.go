@@ -46,11 +46,13 @@ func (p *PostHandler) CreatePostHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	user := getUserFromContext(r)
+
 	post := &service_models.Post{
 		Title:   payload.Title,
 		Content: payload.Content,
 		Tags:    payload.Tags,
-		UserID:  1,
+		UserID:  user.ID,
 	}
 
 	if err := p.postService.Create(context.Background(), post); err != nil {

@@ -26,17 +26,19 @@ func RegisterRoutes(router *httprouter.Router, db *sql.DB) {
 	postService := service.NewPostService(postRepo, db)
 	commentService := service.NewCommentService(commentRepo)
 	mailService := service.NewMailer(config.AppConfig.Mail.ApiKey, config.AppConfig.Mail.FromEmail)
+	JWTAuthenticator := service.NewJWTAuthenticator(config.AppConfig.Authentication.Secret, config.AppConfig.Authentication.Aud, config.AppConfig.Authentication.Iss)
 
-	middleware := middlewares.NewMiddleware(postService, userService)
+	middleware := middlewares.NewMiddleware(postService, userService, JWTAuthenticator)
 
 	feedHandler := handlers.NewFeedHandler(postService)
 	userHandler := handlers.NewUserHandler(userService, followService)
 	postHandler := handlers.NewPostHandler(postService, commentService)
-	authHandler := handlers.NewAuthHandler(userService, mailService)
+	authHandler := handlers.NewAuthHandler(userService, mailService, JWTAuthenticator)
 
 	registerHealthRoutes(router, health, middleware)
-	registerUserRoutes(router, userHandler, authHandler, middleware, feedHandler)
+	registerUserRoutes(router, userHandler, middleware, feedHandler)
 	registerPostRoutes(router, postHandler, middleware)
+	registerAuthenticationRoutes(router, authHandler)
 
 	docsURL := fmt.Sprintf("%s/swagger/doc.json", config.AppConfig.ServerConfig.Port)
 	router.Handler(http.MethodGet, "/swagger/*any", httpSwagger.Handler(httpSwagger.URL(docsURL)))

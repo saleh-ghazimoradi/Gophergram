@@ -33,8 +33,12 @@ type Context struct {
 }
 
 type Authentication struct {
-	Username string `env:"USERNAME,required"`
-	Password string `env:"PASSWORD,required"`
+	Username string        `env:"USERNAME,required"`
+	Password string        `env:"PASSWORD,required"`
+	Secret   string        `env:"SECRET,required"`
+	Exp      time.Duration `env:"EXP,required"`
+	Aud      string        `env:"AUD,required"`
+	Iss      string        `env:"ISS,required"`
 }
 
 type Mail struct {

@@ -9,8 +9,9 @@ import (
 
 func registerPostRoutes(router *httprouter.Router, handler *handlers.PostHandler, middleware *middlewares.CustomMiddleware) {
 	postMiddleware := middleware.PostsContextMiddleware
-	router.HandlerFunc(http.MethodPost, "/v1/posts", handler.CreatePostHandler)
-	router.Handler(http.MethodGet, "/v1/posts/:id", postMiddleware(http.HandlerFunc(handler.GetPostByIdHandler)))
-	router.Handler(http.MethodPatch, "/v1/posts/:id", postMiddleware(http.HandlerFunc(handler.UpdatePostHandler)))
-	router.Handler(http.MethodDelete, "/v1/posts/:id", postMiddleware(http.HandlerFunc(handler.DeletePostHandler)))
+	authTokenMiddleware := middleware.AuthTokenMiddleware
+	router.Handler(http.MethodPost, "/v1/posts", authTokenMiddleware(http.HandlerFunc(handler.CreatePostHandler)))
+	router.Handler(http.MethodGet, "/v1/posts/:id", authTokenMiddleware(postMiddleware(http.HandlerFunc(handler.GetPostByIdHandler))))
+	router.Handler(http.MethodPatch, "/v1/posts/:id", authTokenMiddleware(postMiddleware(http.HandlerFunc(handler.UpdatePostHandler))))
+	router.Handler(http.MethodDelete, "/v1/posts/:id", authTokenMiddleware(postMiddleware(http.HandlerFunc(handler.DeletePostHandler))))
 }
