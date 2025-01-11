@@ -46,31 +46,6 @@ func (m *CustomMiddleware) PostsContextMiddleware(next http.Handler) http.Handle
 	})
 }
 
-func (m *CustomMiddleware) UserContextMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		id, err := helper.ReadIdParam(r)
-		if err != nil {
-			helper.BadRequestResponse(w, r, err)
-			return
-		}
-
-		user, err := m.userService.GetById(context.Background(), id)
-		if err != nil {
-			switch {
-			case errors.Is(err, repository.ErrsNotFound):
-				helper.NotFoundResponse(w, r, err)
-				return
-			default:
-				helper.InternalServerError(w, r, err)
-				return
-			}
-		}
-		ctx := r.Context()
-		ctx = context.WithValue(ctx, handlers.UserCTX, user)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
-}
-
 func (m *CustomMiddleware) BasicAuthentication(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
