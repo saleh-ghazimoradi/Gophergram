@@ -35,7 +35,23 @@ type UserHandler struct {
 //	@Security		ApiKeyAuth
 //	@Router			/v1/users/{id} [get]
 func (u *UserHandler) GetUserHandler(w http.ResponseWriter, r *http.Request) {
-	user := GetUserFromContext(r)
+	id, err := helper.ReadIdParam(r)
+	if err != nil || id < 1 {
+		helper.BadRequestResponse(w, r, err)
+		return
+	}
+
+	user, err := u.userService.GetById(context.Background(), id)
+	if err != nil {
+		switch err {
+		case repository.ErrsNotFound:
+			helper.NotFoundResponse(w, r, err)
+		default:
+			helper.InternalServerError(w, r, err)
+		}
+		return
+	}
+
 	if err := json.JSONResponse(w, http.StatusOK, user); err != nil {
 		helper.InternalServerError(w, r, err)
 	}

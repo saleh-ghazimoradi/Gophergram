@@ -3,6 +3,7 @@ package routes
 import (
 	"database/sql"
 	"fmt"
+	"github.com/go-redis/redis/v8"
 	"github.com/julienschmidt/httprouter"
 	"github.com/saleh-ghazimoradi/Gophergram/config"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/gateway/handlers"
@@ -13,7 +14,7 @@ import (
 	"net/http"
 )
 
-func RegisterRoutes(router *httprouter.Router, db *sql.DB) {
+func RegisterRoutes(router *httprouter.Router, db *sql.DB, client *redis.Client) {
 	health := handlers.NewHealthHandler()
 
 	userRepo := repository.NewUserRepository(db, db)
@@ -21,6 +22,7 @@ func RegisterRoutes(router *httprouter.Router, db *sql.DB) {
 	postRepo := repository.NewPostRepository(db, db)
 	commentRepo := repository.NewCommentRepository(db, db)
 	roleRepo := repository.NewRoleRepository(db, db)
+	cacheRepository := repository.NewCacheRepository(client)
 
 	userService := service.NewUserService(userRepo, db)
 	followService := service.NewFollowerService(followRepo)
@@ -29,8 +31,9 @@ func RegisterRoutes(router *httprouter.Router, db *sql.DB) {
 	mailService := service.NewMailer(config.AppConfig.Mail.ApiKey, config.AppConfig.Mail.FromEmail)
 	JWTAuthenticator := service.NewJWTAuthenticator(config.AppConfig.Authentication.Secret, config.AppConfig.Authentication.Aud, config.AppConfig.Authentication.Iss)
 	roleService := service.NewRoleService(roleRepo)
+	cacheService := service.NewCacheService(cacheRepository)
 
-	middleware := middlewares.NewMiddleware(postService, userService, JWTAuthenticator, roleService)
+	middleware := middlewares.NewMiddleware(postService, userService, JWTAuthenticator, roleService, cacheService)
 
 	feedHandler := handlers.NewFeedHandler(postService)
 	userHandler := handlers.NewUserHandler(userService, followService)

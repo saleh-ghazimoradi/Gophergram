@@ -12,16 +12,18 @@ import (
 	"github.com/saleh-ghazimoradi/Gophergram/internal/repository"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/service"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/service/service_models"
+	"github.com/saleh-ghazimoradi/Gophergram/logger"
 	"net/http"
 	"strconv"
 	"strings"
 )
 
 type CustomMiddleware struct {
-	postService service.PostService
-	userService service.UserService
-	authService service.Authenticator
-	roleService service.RoleService
+	postService  service.PostService
+	userService  service.UserService
+	authService  service.Authenticator
+	roleService  service.RoleService
+	cacheService service.CacheService
 }
 
 func (m *CustomMiddleware) PostsContextMiddleware(next http.Handler) http.Handler {
@@ -109,7 +111,7 @@ func (m *CustomMiddleware) AuthTokenMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		user, err := m.userService.GetById(context.Background(), userId)
+		user, err := m.GetUser(context.Background(), userId)
 		if err != nil {
 			helper.UnauthorizedErrorResponse(w, r, err)
 			return
@@ -120,6 +122,24 @@ func (m *CustomMiddleware) AuthTokenMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+func (m *CustomMiddleware) GetUser(ctx context.Context, id int64) (*service_models.User, error) {
+	logger.Logger.Info("cache hit", "key", "user", "id", id)
+	user, err := m.cacheService.Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		logger.Logger.Info("fetching from DB", "id", id)
+		user, err = m.userService.GetById(ctx, id)
+		if err != nil {
+			return nil, err
+		}
+		if err = m.cacheService.Set(ctx, user); err != nil {
+			return nil, err
+		}
+	}
+	return user, nil
+}
 func (m *CustomMiddleware) CheckPostOwnership(requiredRole string, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user := handlers.GetUserFromContext(r)
@@ -153,11 +173,12 @@ func (m *CustomMiddleware) checkRolePrecedence(ctx context.Context, user *servic
 	return user.Role.Level >= role.Level, nil
 }
 
-func NewMiddleware(postService service.PostService, userService service.UserService, authService service.Authenticator, roleService service.RoleService) *CustomMiddleware {
+func NewMiddleware(postService service.PostService, userService service.UserService, authService service.Authenticator, roleService service.RoleService, cacheService service.CacheService) *CustomMiddleware {
 	return &CustomMiddleware{
-		postService: postService,
-		userService: userService,
-		authService: authService,
-		roleService: roleService,
+		postService:  postService,
+		userService:  userService,
+		authService:  authService,
+		roleService:  roleService,
+		cacheService: cacheService,
 	}
 }

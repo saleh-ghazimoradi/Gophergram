@@ -16,6 +16,7 @@ type Config struct {
 	Pagination     Pagination
 	Mail           Mail
 	Authentication Authentication
+	Redis          Redis
 }
 
 type ServerConfig struct {
@@ -39,6 +40,13 @@ type Authentication struct {
 	Exp      time.Duration `env:"EXP,required"`
 	Aud      string        `env:"AUD,required"`
 	Iss      string        `env:"ISS,required"`
+}
+
+type Redis struct {
+	Addr    string `env:"REDIS_ADDR,required"`
+	PW      string `env:"REDIS_PASSWORD,required"`
+	DB      int    `env:"REDIS_DB,required"`
+	Enabled bool   `env:"REDIS_ENABLED,required"`
 }
 
 type Mail struct {
@@ -125,6 +133,12 @@ func LoadingConfig() error {
 		log.Fatal("error parsing token config")
 	}
 	config.Authentication = *authConfig
+
+	redisConfig := &Redis{}
+	if err := env.Parse(redisConfig); err != nil {
+		log.Fatal("error parsing token config")
+	}
+	config.Redis = *redisConfig
 
 	AppConfig = config
 

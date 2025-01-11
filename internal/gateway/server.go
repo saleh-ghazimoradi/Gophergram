@@ -20,17 +20,21 @@ import (
 var wg sync.WaitGroup
 
 func Server() error {
-
 	docs.SwaggerInfo.Version = config.AppConfig.ServerConfig.Version
 	docs.SwaggerInfo.Host = config.AppConfig.ServerConfig.APIURL
-	
+
 	db, err := utils.PostConnection()
 	if err != nil {
 		return err
 	}
 
+	redis, err := utils.RedisConnection(config.AppConfig.Redis.Addr, config.AppConfig.Redis.PW, config.AppConfig.Redis.DB)
+	if err != nil {
+		logger.Logger.Error(err.Error())
+	}
+
 	router := httprouter.New()
-	routes.RegisterRoutes(router, db)
+	routes.RegisterRoutes(router, db, redis)
 
 	srv := &http.Server{
 		Addr:         config.AppConfig.ServerConfig.Port,
@@ -41,7 +45,6 @@ func Server() error {
 	}
 
 	shutdownError := make(chan error)
-
 	go func() {
 		quit := make(chan os.Signal, 1)
 		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
