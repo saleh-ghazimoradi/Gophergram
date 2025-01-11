@@ -132,6 +132,9 @@ func generateUsers(num int) []*service_models.User {
 		users[i] = &service_models.User{
 			Username: usernames[i%len(usernames)] + fmt.Sprintf("%d", i),
 			Email:    usernames[i%len(usernames)] + fmt.Sprintf("%d", i) + "@example.com",
+			Role: service_models.Role{
+				Name: "user",
+			},
 		}
 	}
 	return users

@@ -20,6 +20,7 @@ func RegisterRoutes(router *httprouter.Router, db *sql.DB) {
 	followRepo := repository.NewFollowerRepository(db, db)
 	postRepo := repository.NewPostRepository(db, db)
 	commentRepo := repository.NewCommentRepository(db, db)
+	roleRepo := repository.NewRoleRepository(db, db)
 
 	userService := service.NewUserService(userRepo, db)
 	followService := service.NewFollowerService(followRepo)
@@ -27,8 +28,9 @@ func RegisterRoutes(router *httprouter.Router, db *sql.DB) {
 	commentService := service.NewCommentService(commentRepo)
 	mailService := service.NewMailer(config.AppConfig.Mail.ApiKey, config.AppConfig.Mail.FromEmail)
 	JWTAuthenticator := service.NewJWTAuthenticator(config.AppConfig.Authentication.Secret, config.AppConfig.Authentication.Aud, config.AppConfig.Authentication.Iss)
+	roleService := service.NewRoleService(roleRepo)
 
-	middleware := middlewares.NewMiddleware(postService, userService, JWTAuthenticator)
+	middleware := middlewares.NewMiddleware(postService, userService, JWTAuthenticator, roleService)
 
 	feedHandler := handlers.NewFeedHandler(postService)
 	userHandler := handlers.NewUserHandler(userService, followService)

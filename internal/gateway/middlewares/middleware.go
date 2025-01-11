@@ -11,6 +11,7 @@ import (
 	"github.com/saleh-ghazimoradi/Gophergram/internal/gateway/helper"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/repository"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/service"
+	"github.com/saleh-ghazimoradi/Gophergram/internal/service/service_models"
 	"net/http"
 	"strconv"
 	"strings"
@@ -20,6 +21,7 @@ type CustomMiddleware struct {
 	postService service.PostService
 	userService service.UserService
 	authService service.Authenticator
+	roleService service.RoleService
 }
 
 func (m *CustomMiddleware) PostsContextMiddleware(next http.Handler) http.Handler {
@@ -118,10 +120,44 @@ func (m *CustomMiddleware) AuthTokenMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func NewMiddleware(postService service.PostService, userService service.UserService, authService service.Authenticator) *CustomMiddleware {
+func (m *CustomMiddleware) CheckPostOwnership(requiredRole string, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user := handlers.GetUserFromContext(r)
+		post := handlers.GetPostFromCTX(r)
+
+		if post.UserID == user.ID {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		allowed, err := m.checkRolePrecedence(context.Background(), user, requiredRole)
+		if err != nil {
+			helper.InternalServerError(w, r, err)
+			return
+		}
+
+		if !allowed {
+			helper.ForbiddenResponse(w, r)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (m *CustomMiddleware) checkRolePrecedence(ctx context.Context, user *service_models.User, roleName string) (bool, error) {
+	role, err := m.roleService.GetByName(ctx, roleName)
+	if err != nil {
+		return false, err
+	}
+	return user.Role.Level >= role.Level, nil
+}
+
+func NewMiddleware(postService service.PostService, userService service.UserService, authService service.Authenticator, roleService service.RoleService) *CustomMiddleware {
 	return &CustomMiddleware{
 		postService: postService,
 		userService: userService,
 		authService: authService,
+		roleService: roleService,
 	}
 }

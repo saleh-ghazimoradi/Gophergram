@@ -12,6 +12,8 @@ type User struct {
 	Password  Password  `json:"-"`
 	CreatedAt time.Time `json:"created_at"`
 	IsActive  bool      `json:"is_active"`
+	RoleID    int64     `json:"role_id"`
+	Role      Role      `json:"role"`
 }
 
 type RegisterUserPayload struct {

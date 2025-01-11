@@ -35,7 +35,7 @@ type UserHandler struct {
 //	@Security		ApiKeyAuth
 //	@Router			/v1/users/{id} [get]
 func (u *UserHandler) GetUserHandler(w http.ResponseWriter, r *http.Request) {
-	user := getUserFromContext(r)
+	user := GetUserFromContext(r)
 	if err := json.JSONResponse(w, http.StatusOK, user); err != nil {
 		helper.InternalServerError(w, r, err)
 	}
@@ -55,7 +55,7 @@ func (u *UserHandler) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 //	@Security		ApiKeyAuth
 //	@Router			/v1/users/{id}/follow [put]
 func (u *UserHandler) FollowUserHandler(w http.ResponseWriter, r *http.Request) {
-	followedUser := getUserFromContext(r)
+	followedUser := GetUserFromContext(r)
 	followedID, err := helper.ReadIdParam(r)
 	if err != nil {
 		helper.BadRequestResponse(w, r, err)
@@ -92,7 +92,7 @@ func (u *UserHandler) FollowUserHandler(w http.ResponseWriter, r *http.Request) 
 //	@Security		ApiKeyAuth
 //	@Router			/v1/users/{id}/unfollow [put]
 func (u *UserHandler) UnFollowUserHandler(w http.ResponseWriter, r *http.Request) {
-	followedUser := getUserFromContext(r)
+	followedUser := GetUserFromContext(r)
 
 	unfollowedID, err := helper.ReadIdParam(r)
 	if err != nil {
@@ -145,7 +145,7 @@ func (u *UserHandler) ActivateUserHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
-func getUserFromContext(r *http.Request) *service_models.User {
+func GetUserFromContext(r *http.Request) *service_models.User {
 	user, _ := r.Context().Value(UserCTX).(*service_models.User)
 	return user
 }

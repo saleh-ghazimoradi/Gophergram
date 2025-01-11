@@ -744,9 +744,29 @@ const docTemplate = `{
                     "maxLength": 32,
                     "minLength": 3
                 },
+                "role_id": {
+                    "type": "integer"
+                },
                 "username": {
                     "type": "string",
                     "maxLength": 50
+                }
+            }
+        },
+        "service_models.Role": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "level": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
                 }
             }
         },
@@ -777,6 +797,12 @@ const docTemplate = `{
                 },
                 "is_active": {
                     "type": "boolean"
+                },
+                "role": {
+                    "$ref": "#/definitions/service_models.Role"
+                },
+                "role_id": {
+                    "type": "integer"
                 },
                 "username": {
                     "type": "string"

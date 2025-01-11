@@ -46,7 +46,7 @@ func (p *PostHandler) CreatePostHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	user := getUserFromContext(r)
+	user := GetUserFromContext(r)
 
 	post := &service_models.Post{
 		Title:   payload.Title,
@@ -79,7 +79,7 @@ func (p *PostHandler) CreatePostHandler(w http.ResponseWriter, r *http.Request) 
 //	@Security		ApiKeyAuth
 //	@Router			/v1/posts/{id} [get]
 func (p *PostHandler) GetPostByIdHandler(w http.ResponseWriter, r *http.Request) {
-	post := getPostFromCTX(r)
+	post := GetPostFromCTX(r)
 
 	comments, err := p.commentService.GetByPostId(context.Background(), post.ID)
 	if err != nil {
@@ -111,7 +111,7 @@ func (p *PostHandler) GetPostByIdHandler(w http.ResponseWriter, r *http.Request)
 //	@Security		ApiKeyAuth
 //	@Router			/v1/posts/{id} [patch]
 func (p *PostHandler) UpdatePostHandler(w http.ResponseWriter, r *http.Request) {
-	post := getPostFromCTX(r)
+	post := GetPostFromCTX(r)
 
 	var payload service_models.UpdatePostPayload
 	if err := json.ReadJSON(w, r, &payload); err != nil {
@@ -156,7 +156,7 @@ func (p *PostHandler) UpdatePostHandler(w http.ResponseWriter, r *http.Request) 
 //	@Security		ApiKeyAuth
 //	@Router			/v1/posts/{id} [delete]
 func (p *PostHandler) DeletePostHandler(w http.ResponseWriter, r *http.Request) {
-	post := getPostFromCTX(r)
+	post := GetPostFromCTX(r)
 
 	if err := p.postService.Delete(context.Background(), post.ID); err != nil {
 		switch {
@@ -169,7 +169,7 @@ func (p *PostHandler) DeletePostHandler(w http.ResponseWriter, r *http.Request) 
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func getPostFromCTX(r *http.Request) *service_models.Post {
+func GetPostFromCTX(r *http.Request) *service_models.Post {
 	post, _ := r.Context().Value(PostCtx).(*service_models.Post)
 	return post
 }

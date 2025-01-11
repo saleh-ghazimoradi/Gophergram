@@ -90,8 +90,6 @@ func (a *AuthHandler) RegisterUserHandler(w http.ResponseWriter, r *http.Request
 		ActivationURL: activationURL,
 	}
 
-	fmt.Println(config.AppConfig.Mail.UserWelcomeTemplate)
-
 	status, err := a.mailService.Send(config.AppConfig.Mail.UserWelcomeTemplate, user.Username, user.Email, vars, !isProdEnv)
 	if err != nil {
 		logger.Logger.Error("error sending welcome email", "error", err)

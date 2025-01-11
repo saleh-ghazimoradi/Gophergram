@@ -31,11 +31,20 @@ type userRepository struct {
 
 func (u *userRepository) Create(ctx context.Context, user *service_models.User) error {
 
-	query := `INSERT INTO users (username, password, email) VALUES ($1, $2, $3) RETURNING id, created_at`
+	query := `
+		INSERT INTO users (username, password, email, role_id) VALUES 
+    ($1, $2, $3, (SELECT id FROM roles WHERE name = $4))
+    RETURNING id, created_at
+	`
 	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.Context.ContextTimeout)
 	defer cancel()
 
-	args := []any{user.Username, user.Password.Hash, user.Email}
+	role := user.Role.Name
+	if role == "" {
+		role = "user"
+	}
+
+	args := []any{user.Username, user.Password.Hash, user.Email, role}
 	if err := u.dbWrite.QueryRowContext(ctx, query, args...).Scan(&user.ID, &user.CreatedAt); err != nil {
 		switch {
 		case err.Error() == `pq: duplicate key value violates unique constraint "users_username_key"`:
@@ -51,11 +60,11 @@ func (u *userRepository) Create(ctx context.Context, user *service_models.User) 
 }
 
 func (u *userRepository) GetById(ctx context.Context, id int64) (*service_models.User, error) {
-	query := `SELECT id, username, email, password, created_at FROM users WHERE id = $1 AND is_active = true`
+	query := `SELECT users.id, username, email, password, created_at, roles.* FROM users JOIN roles ON (users.role_id = roles.id) WHERE users.id = $1 AND is_active = true`
 	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.Context.ContextTimeout)
 	defer cancel()
 	var user service_models.User
-	err := u.dbRead.QueryRowContext(ctx, query, id).Scan(&user.ID, &user.Username, &user.Email, &user.Password.Hash, &user.CreatedAt)
+	err := u.dbRead.QueryRowContext(ctx, query, id).Scan(&user.ID, &user.Username, &user.Email, &user.Password.Hash, &user.CreatedAt, &user.Role.ID, &user.Role.Name, &user.Role.Level, &user.Role.Description)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -64,6 +73,7 @@ func (u *userRepository) GetById(ctx context.Context, id int64) (*service_models
 			return nil, err
 		}
 	}
+
 	return &user, nil
 }
 

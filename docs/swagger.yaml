@@ -109,6 +109,8 @@ definitions:
         maxLength: 32
         minLength: 3
         type: string
+      role_id:
+        type: integer
       username:
         maxLength: 50
         type: string
@@ -116,6 +118,17 @@ definitions:
     - email
     - password
     - username
+    type: object
+  service_models.Role:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      level:
+        type: integer
+      name:
+        type: string
     type: object
   service_models.UpdatePostPayload:
     properties:
@@ -136,6 +149,10 @@ definitions:
         type: integer
       is_active:
         type: boolean
+      role:
+        $ref: '#/definitions/service_models.Role'
+      role_id:
+        type: integer
       username:
         type: string
     type: object
