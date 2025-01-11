@@ -27,7 +27,7 @@ type UserHandler struct {
 //	@Tags			users
 //	@Accept			json
 //	@Produce		json
-//	@Param			id	path		int	true	"User ID"
+//	@Param			id	path		int	true	"id"
 //	@Success		200	{object}	service_models.User
 //	@Failure		400	{object}	error
 //	@Failure		404	{object}	error
@@ -48,15 +48,15 @@ func (u *UserHandler) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 //	@Tags			users
 //	@Accept			json
 //	@Produce		json
-//	@Param			userID	path		int		true	"User ID"
-//	@Success		204		{string}	string	"User followed"
-//	@Failure		400		{object}	error	"User payload missing"
-//	@Failure		404		{object}	error	"User not found"
+//	@Param			id	path		int		true	"id"
+//	@Success		204	{string}	string	"User followed"
+//	@Failure		400	{object}	error	"User payload missing"
+//	@Failure		404	{object}	error	"User not found"
 //	@Security		ApiKeyAuth
 //	@Router			/v1/users/{id}/follow [put]
 func (u *UserHandler) FollowUserHandler(w http.ResponseWriter, r *http.Request) {
 	followedUser := getUserFromContext(r)
-	followedID, err := helper.ReadUserIdParam(r)
+	followedID, err := helper.ReadIdParam(r)
 	if err != nil {
 		helper.BadRequestResponse(w, r, err)
 		return
@@ -85,16 +85,16 @@ func (u *UserHandler) FollowUserHandler(w http.ResponseWriter, r *http.Request) 
 //	@Tags			users
 //	@Accept			json
 //	@Produce		json
-//	@Param			userID	path		int		true	"User ID"
-//	@Success		204		{string}	string	"User unfollowed"
-//	@Failure		400		{object}	error	"User payload missing"
-//	@Failure		404		{object}	error	"User not found"
+//	@Param			id	path		int		true	"id"
+//	@Success		204	{string}	string	"User unfollowed"
+//	@Failure		400	{object}	error	"User payload missing"
+//	@Failure		404	{object}	error	"User not found"
 //	@Security		ApiKeyAuth
 //	@Router			/v1/users/{id}/unfollow [put]
 func (u *UserHandler) UnFollowUserHandler(w http.ResponseWriter, r *http.Request) {
 	followedUser := getUserFromContext(r)
 
-	unfollowedID, err := helper.ReadUserIdParam(r)
+	unfollowedID, err := helper.ReadIdParam(r)
 	if err != nil {
 		helper.BadRequestResponse(w, r, err)
 		return
@@ -112,17 +112,16 @@ func (u *UserHandler) UnFollowUserHandler(w http.ResponseWriter, r *http.Request
 
 // ActivateUserHandler Activates the registered users
 //
-//	@Summary		Activates the registered users by invitation token
-//	@Description	Unfollow a user by ID
+//	@Summary		Activates/Register a user
+//	@Description	Activates/Register a user by invitation token
 //	@Tags			users
-//	@Accept			json
 //	@Produce		json
-//	@Param			token	path		string	true	"Invitation token"
+//	@Param			token	path		string	true	"token"
 //	@Success		204		{string}	string	"User activated"
-//	@Failure		400		{object}	error
+//	@Failure		404		{object}	error
 //	@Failure		500		{object}	error
 //	@Security		ApiKeyAuth
-//	@Router			/v1/user/activate/token [put]
+//	@Router			/v1/user/activate/{token} [put]
 func (u *UserHandler) ActivateUserHandler(w http.ResponseWriter, r *http.Request) {
 	token, err := helper.ReadTokenParam(r)
 	if err != nil {

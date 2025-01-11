@@ -336,28 +336,25 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/user/activate/token": {
+        "/v1/user/activate/{token}": {
             "put": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Unfollow a user by ID",
-                "consumes": [
-                    "application/json"
-                ],
+                "description": "Activates/Register a user by invitation token",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "users"
                 ],
-                "summary": "Activates the registered users by invitation token",
+                "summary": "Activates/Register a user",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Invitation token",
+                        "description": "token",
                         "name": "token",
                         "in": "path",
                         "required": true
@@ -370,8 +367,8 @@ const docTemplate = `{
                             "type": "string"
                         }
                     },
-                    "400": {
-                        "description": "Bad Request",
+                    "404": {
+                        "description": "Not Found",
                         "schema": {}
                     },
                     "500": {
@@ -461,7 +458,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "User ID",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -510,8 +507,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "User ID",
-                        "name": "userID",
+                        "description": "id",
+                        "name": "id",
                         "in": "path",
                         "required": true
                     }
@@ -555,8 +552,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "User ID",
-                        "name": "userID",
+                        "description": "id",
+                        "name": "id",
                         "in": "path",
                         "required": true
                     }

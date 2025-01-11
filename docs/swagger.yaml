@@ -355,13 +355,11 @@ paths:
       summary: Updates a post
       tags:
       - posts
-  /v1/user/activate/token:
+  /v1/user/activate/{token}:
     put:
-      consumes:
-      - application/json
-      description: Unfollow a user by ID
+      description: Activates/Register a user by invitation token
       parameters:
-      - description: Invitation token
+      - description: token
         in: path
         name: token
         required: true
@@ -373,15 +371,15 @@ paths:
           description: User activated
           schema:
             type: string
-        "400":
-          description: Bad Request
+        "404":
+          description: Not Found
           schema: {}
         "500":
           description: Internal Server Error
           schema: {}
       security:
       - ApiKeyAuth: []
-      summary: Activates the registered users by invitation token
+      summary: Activates/Register a user
       tags:
       - users
   /v1/users/{id}:
@@ -390,7 +388,7 @@ paths:
       - application/json
       description: Fetches a user profile by ID
       parameters:
-      - description: User ID
+      - description: id
         in: path
         name: id
         required: true
@@ -422,9 +420,9 @@ paths:
       - application/json
       description: Follows a user by ID
       parameters:
-      - description: User ID
+      - description: id
         in: path
-        name: userID
+        name: id
         required: true
         type: integer
       produces:
@@ -451,9 +449,9 @@ paths:
       - application/json
       description: Unfollow a user by ID
       parameters:
-      - description: User ID
+      - description: id
         in: path
-        name: userID
+        name: id
         required: true
         type: integer
       produces:
