@@ -7,4 +7,5 @@ var (
 	ErrsConflict         = errors.New("resource already exists")
 	ErrDuplicateUsername = errors.New("duplicate username")
 	ErrDuplicateEmail    = errors.New("duplicate email")
+	ErrRateLimitExceeded = errors.New("rate limit exceeded")
 )

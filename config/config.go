@@ -17,6 +17,7 @@ type Config struct {
 	Mail           Mail
 	Authentication Authentication
 	Redis          Redis
+	Rate           Rate
 }
 
 type ServerConfig struct {
@@ -40,6 +41,11 @@ type Authentication struct {
 	Exp      time.Duration `env:"EXP,required"`
 	Aud      string        `env:"AUD,required"`
 	Iss      string        `env:"ISS,required"`
+}
+
+type Rate struct {
+	Limit  int           `env:"RATE_LIMIT,required"`
+	Window time.Duration `env:"RATE_WINDOW,required"`
 }
 
 type Redis struct {
@@ -139,6 +145,13 @@ func LoadingConfig() error {
 		log.Fatal("error parsing token config")
 	}
 	config.Redis = *redisConfig
+
+	rateConfig := &Rate{}
+	if err := env.Parse(rateConfig); err != nil {
+		log.Fatal("error parsing token config")
+	}
+
+	config.Rate = *rateConfig
 
 	AppConfig = config
 

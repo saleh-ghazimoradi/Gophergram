@@ -19,11 +19,12 @@ import (
 )
 
 type CustomMiddleware struct {
-	postService  service.PostService
-	userService  service.UserService
-	authService  service.Authenticator
-	roleService  service.RoleService
-	cacheService service.CacheService
+	postService      service.PostService
+	userService      service.UserService
+	authService      service.Authenticator
+	roleService      service.RoleService
+	cacheService     service.CacheService
+	rateLimitService service.RateLimitService
 }
 
 func (m *CustomMiddleware) PostsContextMiddleware(next http.Handler) http.Handler {
@@ -173,12 +174,37 @@ func (m *CustomMiddleware) checkRolePrecedence(ctx context.Context, user *servic
 	return user.Role.Level >= role.Level, nil
 }
 
-func NewMiddleware(postService service.PostService, userService service.UserService, authService service.Authenticator, roleService service.RoleService, cacheService service.CacheService) *CustomMiddleware {
+func (m *CustomMiddleware) RateLimitMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		clientIP := r.RemoteAddr
+		allowed, retryAfter, err := m.rateLimitService.IsAllowed(r.Context(), clientIP, config.AppConfig.Rate.Limit, config.AppConfig.Rate.Window)
+
+		if err != nil && errors.Is(err, repository.ErrRateLimitExceeded) {
+			w.Header().Set("Retry-After", strconv.Itoa(int(retryAfter.Seconds())))
+			helper.RateLimitExceededResponse(w, r, fmt.Sprintf("%v", config.AppConfig.Rate.Window))
+			return
+		} else if err != nil {
+			helper.InternalServerError(w, r, err)
+			return
+		}
+
+		if !allowed {
+			w.Header().Set("Retry-After", strconv.Itoa(int(retryAfter.Seconds())))
+			helper.RateLimitExceededResponse(w, r, fmt.Sprintf("%v", config.AppConfig.Rate.Window))
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func NewMiddleware(postService service.PostService, userService service.UserService, authService service.Authenticator, roleService service.RoleService, cacheService service.CacheService, rateLimitService service.RateLimitService) *CustomMiddleware {
 	return &CustomMiddleware{
-		postService:  postService,
-		userService:  userService,
-		authService:  authService,
-		roleService:  roleService,
-		cacheService: cacheService,
+		postService:      postService,
+		userService:      userService,
+		authService:      authService,
+		roleService:      roleService,
+		cacheService:     cacheService,
+		rateLimitService: rateLimitService,
 	}
 }
