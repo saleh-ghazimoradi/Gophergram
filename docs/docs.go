@@ -744,9 +744,6 @@ const docTemplate = `{
                     "maxLength": 32,
                     "minLength": 3
                 },
-                "role_id": {
-                    "type": "integer"
-                },
                 "username": {
                     "type": "string",
                     "maxLength": 50

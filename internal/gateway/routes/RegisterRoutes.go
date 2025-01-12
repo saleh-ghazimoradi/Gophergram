@@ -36,7 +36,7 @@ func RegisterRoutes(router *httprouter.Router, db *sql.DB, client *redis.Client)
 	middleware := middlewares.NewMiddleware(postService, userService, JWTAuthenticator, roleService, cacheService)
 
 	feedHandler := handlers.NewFeedHandler(postService)
-	userHandler := handlers.NewUserHandler(userService, followService)
+	userHandler := handlers.NewUserHandler(userService, followService, cacheService)
 	postHandler := handlers.NewPostHandler(postService, commentService)
 	authHandler := handlers.NewAuthHandler(userService, mailService, JWTAuthenticator)
 

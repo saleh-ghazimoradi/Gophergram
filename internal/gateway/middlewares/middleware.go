@@ -111,7 +111,7 @@ func (m *CustomMiddleware) AuthTokenMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		user, err := m.GetUser(context.Background(), userId)
+		user, err := m.getUser(context.Background(), userId)
 		if err != nil {
 			helper.UnauthorizedErrorResponse(w, r, err)
 			return
@@ -122,7 +122,7 @@ func (m *CustomMiddleware) AuthTokenMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func (m *CustomMiddleware) GetUser(ctx context.Context, id int64) (*service_models.User, error) {
+func (m *CustomMiddleware) getUser(ctx context.Context, id int64) (*service_models.User, error) {
 	logger.Logger.Info("cache hit", "key", "user", "id", id)
 	user, err := m.cacheService.Get(ctx, id)
 	if err != nil {

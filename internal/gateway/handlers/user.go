@@ -8,6 +8,7 @@ import (
 	"github.com/saleh-ghazimoradi/Gophergram/internal/repository"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/service"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/service/service_models"
+	"github.com/saleh-ghazimoradi/Gophergram/logger"
 	"net/http"
 )
 
@@ -18,6 +19,7 @@ const UserCTX UserKey = "user"
 type UserHandler struct {
 	userService     service.UserService
 	followerService service.FollowerService
+	cacheService    service.CacheService
 }
 
 // GetUserHandler retrieves the current user from the context.
@@ -41,7 +43,7 @@ func (u *UserHandler) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := u.userService.GetById(context.Background(), id)
+	user, err := u.getUser(context.Background(), id)
 	if err != nil {
 		switch err {
 		case repository.ErrsNotFound:
@@ -55,6 +57,25 @@ func (u *UserHandler) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	if err := json.JSONResponse(w, http.StatusOK, user); err != nil {
 		helper.InternalServerError(w, r, err)
 	}
+}
+
+func (u *UserHandler) getUser(ctx context.Context, id int64) (*service_models.User, error) {
+	logger.Logger.Info("cache hit", "key", "user", "id", id)
+	user, err := u.cacheService.Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		logger.Logger.Info("fetching from DB", "id", id)
+		user, err = u.userService.GetById(ctx, id)
+		if err != nil {
+			return nil, err
+		}
+		if err = u.cacheService.Set(ctx, user); err != nil {
+			return nil, err
+		}
+	}
+	return user, nil
 }
 
 // FollowUserHandler allows a user to follow another user.
@@ -166,9 +187,10 @@ func GetUserFromContext(r *http.Request) *service_models.User {
 	return user
 }
 
-func NewUserHandler(userService service.UserService, followService service.FollowerService) *UserHandler {
+func NewUserHandler(userService service.UserService, followService service.FollowerService, cacheService service.CacheService) *UserHandler {
 	return &UserHandler{
 		userService:     userService,
 		followerService: followService,
+		cacheService:    cacheService,
 	}
 }

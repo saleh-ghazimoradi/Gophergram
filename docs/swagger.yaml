@@ -109,8 +109,6 @@ definitions:
         maxLength: 32
         minLength: 3
         type: string
-      role_id:
-        type: integer
       username:
         maxLength: 50
         type: string
