@@ -9,6 +9,8 @@ import (
 
 func registerAuthenticationRoutes(router *httprouter.Router, authHandler *handlers.AuthHandler, middleware *middlewares.CustomMiddleware) {
 	rateLimitMiddleware := middleware.RateLimitMiddleware
-	router.Handler(http.MethodPost, "/v1/authentication/user", rateLimitMiddleware(http.HandlerFunc(authHandler.RegisterUserHandler)))
-	router.Handler(http.MethodPost, "/v1/authentication/token", rateLimitMiddleware(http.HandlerFunc(authHandler.CreateTokenHandler)))
+	recoverPanic := middleware.RecoverPanic
+	commonHeader := middleware.CommonHeaders
+	router.Handler(http.MethodPost, "/v1/authentication/user", commonHeader(recoverPanic(rateLimitMiddleware(http.HandlerFunc(authHandler.RegisterUserHandler)))))
+	router.Handler(http.MethodPost, "/v1/authentication/token", commonHeader(recoverPanic(rateLimitMiddleware(http.HandlerFunc(authHandler.CreateTokenHandler)))))
 }

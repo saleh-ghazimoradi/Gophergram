@@ -10,5 +10,7 @@ import (
 func registerHealthRoutes(router *httprouter.Router, health *handlers.HealthHandler, middleware *middlewares.CustomMiddleware) {
 	authMiddleware := middleware.BasicAuthentication
 	rateLimitMiddleware := middleware.RateLimitMiddleware
-	router.Handler(http.MethodGet, "/v1/health", rateLimitMiddleware(authMiddleware(http.HandlerFunc(health.Health))))
+	recoverPanic := middleware.RecoverPanic
+	commonHeader := middleware.CommonHeaders
+	router.Handler(http.MethodGet, "/v1/health", commonHeader(recoverPanic(rateLimitMiddleware(authMiddleware(http.HandlerFunc(health.Health))))))
 }
