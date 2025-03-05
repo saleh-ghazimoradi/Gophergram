@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:16.3
+    container_name: GopherGram2
+    restart: always
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - ${DATABASE_PORT}:5432
+
+volumes:
+  db-data:
