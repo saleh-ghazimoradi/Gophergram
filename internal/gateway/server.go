@@ -10,7 +10,9 @@ import (
 )
 
 func Server() error {
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		BodyLimit: 1024 * 1024,
+	})
 
 	// Middlewares
 	app.Use(recover.New()) // Prevents crashes from panics
