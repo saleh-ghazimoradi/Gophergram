@@ -3,12 +3,29 @@ package config
 import (
 	"github.com/caarlos0/env/v11"
 	"github.com/saleh-ghazimoradi/Gophergram/sLogger"
+	"time"
 )
 
 var AppConfig *Config
 
 type Config struct {
 	ServerConfig ServerConfig
+	Database     Database
+}
+
+type Database struct {
+	DatabaseDriver   string        `env:"DATABASE_DRIVER,required"`
+	DatabaseSource   string        `env:"DATABASE_SOURCE,required"`
+	DatabaseHost     string        `env:"DATABASE_HOST,required"`
+	DatabasePort     string        `env:"DATABASE_PORT,required"`
+	DatabaseUser     string        `env:"DATABASE_USER,required"`
+	DatabasePassword string        `env:"DATABASE_PASSWORD,required"`
+	DatabaseName     string        `env:"DATABASE_NAME,required"`
+	DatabaseSSLMode  string        `env:"DATABASE_SSLMODE,required"`
+	MaxOpenConn      int           `env:"DB_MAX_OPEN_CONNECTIONS,required"`
+	MaxIdleConn      int           `env:"DB_MAX_IDLE_CONNECTIONS,required"`
+	MaxIdleTime      time.Duration `env:"DB_MAX_IDLE_TIME,required"`
+	Timeout          time.Duration `env:"DB_TIMEOUT,required"`
 }
 
 type ServerConfig struct {
