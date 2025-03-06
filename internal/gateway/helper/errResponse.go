@@ -37,7 +37,7 @@ func BadRequest(ctx *fiber.Ctx, err error) error {
 }
 
 func NotFound(ctx *fiber.Ctx, err error) error {
-	sLogger.SLogger.Error("not found", "method", ctx.Method(), "path", ctx.Path(), "err", err.Error())
+	sLogger.SLogger.Warn("not found", "method", ctx.Method(), "path", ctx.Path(), "err", err.Error())
 	return sendErrorResponse(ctx, fiber.StatusNotFound, "not found", err)
 }
 
@@ -50,26 +50,17 @@ func ConflictResponse(ctx *fiber.Ctx, err error) error {
 }
 
 func UnauthorizedErrorResponse(ctx *fiber.Ctx, err error) error {
-	sLogger.SLogger.Error("unauthorized", "method", ctx.Method(), "path", ctx.Path(), "err", err.Error())
+	sLogger.SLogger.Warn("unauthorized", "method", ctx.Method(), "path", ctx.Path(), "err", err.Error())
 	return sendErrorResponse(ctx, fiber.StatusUnauthorized, "unauthorized", err)
 }
 
 func UnauthorizedBasicErrorResponse(ctx *fiber.Ctx, err error) error {
-	sLogger.SLogger.Error("unauthorized", "method", ctx.Method(), "err", err.Error())
+	sLogger.SLogger.Warn("unauthorized", "method", ctx.Method(), "err", err.Error())
 	ctx.Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
 	return sendErrorResponse(ctx, fiber.StatusUnauthorized, "unauthorized", err)
 }
 
 func ForbiddenResponse(ctx *fiber.Ctx) error {
-	sLogger.SLogger.Error("forbidden", "method", ctx.Method(), "path", ctx.Path(), "err", "Forbidden")
+	sLogger.SLogger.Warn("forbidden", "method", ctx.Method(), "path", ctx.Path(), "err", "Forbidden")
 	return sendErrorResponse(ctx, fiber.StatusForbidden, "forbidden", nil)
-}
-
-func RateLimitExceededResponse(ctx *fiber.Ctx, retryAfter string) error {
-	ctx.Set("Retry-After", retryAfter)
-	sLogger.SLogger.Warn("rate limit exceeded", "method", ctx.Method(), "path", ctx.Path())
-	return ctx.Status(fiber.StatusTooManyRequests).JSON(ErrorResponse{
-		Status:  fiber.StatusTooManyRequests,
-		Message: "rate limit exceeded, retry after: " + retryAfter,
-	})
 }
