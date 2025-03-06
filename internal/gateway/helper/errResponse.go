@@ -3,11 +3,19 @@ package helper
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/saleh-ghazimoradi/Gophergram/sLogger"
+	"net/http"
 )
 
 type ErrorResponse struct {
 	Status  int    `json:"status"`
 	Message string `json:"message"`
+}
+
+func SuccessResponse(ctx *fiber.Ctx, msg string, data any) error {
+	return ctx.Status(http.StatusOK).JSON(fiber.Map{
+		"message": msg,
+		"data":    data,
+	})
 }
 
 func sendErrorResponse(ctx *fiber.Ctx, status int, message string, err error) error {
