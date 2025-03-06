@@ -19,3 +19,7 @@ dockerUp:
 dockerDown:
 	docker compose down
 
+http:
+	go run . http
+
+

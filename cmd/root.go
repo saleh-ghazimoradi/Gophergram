@@ -1,7 +1,8 @@
 package cmd
 
 import (
-	"log"
+	"github.com/saleh-ghazimoradi/Gophergram/config"
+	"github.com/saleh-ghazimoradi/Gophergram/sLogger"
 	"os"
 	"time"
 
@@ -31,8 +32,8 @@ func init() {
 }
 
 func initConfig() {
-	err := config.LoadingConfig()
+	err := config.LoadConfig()
 	if err != nil {
-		log.Fatal("there went something wrong while loading config file")
+		sLogger.SLogger.Error("there went something wrong while loading config file", "error", err)
 	}
 }

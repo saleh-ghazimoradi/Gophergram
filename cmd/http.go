@@ -1,17 +1,19 @@
 package cmd
 
 import (
-	"fmt"
-
+	"github.com/saleh-ghazimoradi/Gophergram/internal/gateway"
+	"github.com/saleh-ghazimoradi/Gophergram/sLogger"
 	"github.com/spf13/cobra"
 )
 
 // httpCmd represents the http command
 var httpCmd = &cobra.Command{
 	Use:   "http",
-	Short: "A brief description of your command",
+	Short: "Launching the app via http",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("http called")
+		if err := gateway.Server(); err != nil {
+			sLogger.SLogger.Error("Failed to start server", "error", err)
+		}
 	},
 }
 
