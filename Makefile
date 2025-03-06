@@ -2,16 +2,16 @@ db_login:
 	psql ${DATABASE_URL}
 
 migrateCreate:
-	migrate create -ext sql -dir migrations -seq $(name)
+	migrate create -ext sql -dir scripts/migrations -seq $(name)
 
 migrateUp:
-	migrate -database ${DATABASE_URL} -path migrations up
+	migrate -database ${DATABASE_URL} -path scripts/migrations up
 
 migrateDown:
-	migrate -database ${DATABASE_URL} -path migrations down 1
+	migrate -database ${DATABASE_URL} -path scripts/migrations down 1
 
 migrateDrop:
-	migrate -database ${DATABASE_URL} -path migrations drop
+	migrate -database ${DATABASE_URL} -path scripts/migrations drop
 
 dockerUp:
 	docker compose up -d
