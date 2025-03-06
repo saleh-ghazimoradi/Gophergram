@@ -14,8 +14,6 @@ type Config struct {
 }
 
 type Database struct {
-	DatabaseDriver   string        `env:"DATABASE_DRIVER,required"`
-	DatabaseSource   string        `env:"DATABASE_SOURCE,required"`
 	DatabaseHost     string        `env:"DATABASE_HOST,required"`
 	DatabasePort     string        `env:"DATABASE_PORT,required"`
 	DatabaseUser     string        `env:"DATABASE_USER,required"`
