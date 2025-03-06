@@ -23,7 +23,7 @@
 app.env
 *.envrc
 
-*.toml
+*.tmol
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
