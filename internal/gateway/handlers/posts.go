@@ -2,10 +2,13 @@ package handlers
 
 import (
 	"context"
+	"github.com/friendsofgo/errors"
 	"github.com/gofiber/fiber/v2"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/gateway/dto"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/gateway/helper"
+	"github.com/saleh-ghazimoradi/Gophergram/internal/repository"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/service"
+	"strconv"
 )
 
 type PostHandler struct {
@@ -22,7 +25,23 @@ func (p *PostHandler) CreatePostHandler(ctx *fiber.Ctx) error {
 		return helper.InternalServerError(ctx, err)
 	}
 
-	return helper.SuccessResponse(ctx, "post created successfully", post)
+	return helper.CreatedResponse(ctx, "post created successfully", post)
+}
+
+func (p *PostHandler) GetPostHandler(ctx *fiber.Ctx) error {
+	id, _ := strconv.ParseInt(ctx.Params("id"), 10, 64)
+
+	post, err := p.postService.GetById(context.Background(), id)
+	if err != nil {
+		switch {
+		case errors.Is(err, repository.ErrsNotFound):
+			return helper.NotFound(ctx, err)
+		default:
+			return helper.InternalServerError(ctx, err)
+		}
+	}
+
+	return helper.SuccessResponse(ctx, "success", post)
 }
 
 func NewPostHandler(postService service.PostService) *PostHandler {

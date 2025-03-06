@@ -6,6 +6,7 @@ import (
 )
 
 func PostRoutes(app *fiber.App, postHandler *handlers.PostHandler) {
-	app.Post("/posts", postHandler.CreatePostHandler)
-
+	v1 := app.Group("/v1")
+	v1.Post("/posts", postHandler.CreatePostHandler)
+	v1.Get("/posts/:id", postHandler.GetPostHandler)
 }

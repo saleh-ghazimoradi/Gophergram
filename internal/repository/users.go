@@ -22,9 +22,9 @@ type userRepository struct {
 
 func (u *userRepository) Create(ctx context.Context, user *service_models.Users) error {
 	newUser := &boiler_models.User{
-		Username:  user.Username,
-		Email:     user.Email,
-		Password:  user.Password,
+		Username: user.Username,
+		Email:    user.Email,
+		//Password:  user.Password,
 		CreatedAt: user.CreatedAt,
 	}
 

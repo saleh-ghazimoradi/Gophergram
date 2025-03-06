@@ -30,7 +30,7 @@ type Post struct {
 	Content   string            `boil:"content" json:"content" toml:"content" yaml:"content"`
 	CreatedAt time.Time         `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 	Tags      types.StringArray `boil:"tags" json:"tags,omitempty" toml:"tags" yaml:"tags,omitempty"`
-	UpdateAt  time.Time         `boil:"update_at" json:"update_at" toml:"update_at" yaml:"update_at"`
+	UpdatedAt time.Time         `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
 	R *postR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L postL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -43,7 +43,7 @@ var PostColumns = struct {
 	Content   string
 	CreatedAt string
 	Tags      string
-	UpdateAt  string
+	UpdatedAt string
 }{
 	ID:        "id",
 	Title:     "title",
@@ -51,7 +51,7 @@ var PostColumns = struct {
 	Content:   "content",
 	CreatedAt: "created_at",
 	Tags:      "tags",
-	UpdateAt:  "update_at",
+	UpdatedAt: "updated_at",
 }
 
 var PostTableColumns = struct {
@@ -61,7 +61,7 @@ var PostTableColumns = struct {
 	Content   string
 	CreatedAt string
 	Tags      string
-	UpdateAt  string
+	UpdatedAt string
 }{
 	ID:        "posts.id",
 	Title:     "posts.title",
@@ -69,7 +69,7 @@ var PostTableColumns = struct {
 	Content:   "posts.content",
 	CreatedAt: "posts.created_at",
 	Tags:      "posts.tags",
-	UpdateAt:  "posts.update_at",
+	UpdatedAt: "posts.updated_at",
 }
 
 // Generated where
@@ -182,7 +182,7 @@ var PostWhere = struct {
 	Content   whereHelperstring
 	CreatedAt whereHelpertime_Time
 	Tags      whereHelpertypes_StringArray
-	UpdateAt  whereHelpertime_Time
+	UpdatedAt whereHelpertime_Time
 }{
 	ID:        whereHelperint64{field: "\"posts\".\"id\""},
 	Title:     whereHelperstring{field: "\"posts\".\"title\""},
@@ -190,7 +190,7 @@ var PostWhere = struct {
 	Content:   whereHelperstring{field: "\"posts\".\"content\""},
 	CreatedAt: whereHelpertime_Time{field: "\"posts\".\"created_at\""},
 	Tags:      whereHelpertypes_StringArray{field: "\"posts\".\"tags\""},
-	UpdateAt:  whereHelpertime_Time{field: "\"posts\".\"update_at\""},
+	UpdatedAt: whereHelpertime_Time{field: "\"posts\".\"updated_at\""},
 }
 
 // PostRels is where relationship names are stored.
@@ -221,9 +221,9 @@ func (r *postR) GetUser() *User {
 type postL struct{}
 
 var (
-	postAllColumns            = []string{"id", "title", "user_id", "content", "created_at", "tags", "update_at"}
+	postAllColumns            = []string{"id", "title", "user_id", "content", "created_at", "tags", "updated_at"}
 	postColumnsWithoutDefault = []string{"title", "user_id", "content"}
-	postColumnsWithDefault    = []string{"id", "created_at", "tags", "update_at"}
+	postColumnsWithDefault    = []string{"id", "created_at", "tags", "updated_at"}
 	postPrimaryKeyColumns     = []string{"id"}
 	postGeneratedColumns      = []string{}
 )
@@ -804,6 +804,9 @@ func (o *Post) Insert(ctx context.Context, exec boil.ContextExecutor, columns bo
 		if o.CreatedAt.IsZero() {
 			o.CreatedAt = currTime
 		}
+		if o.UpdatedAt.IsZero() {
+			o.UpdatedAt = currTime
+		}
 	}
 
 	if err := o.doBeforeInsertHooks(ctx, exec); err != nil {
@@ -886,6 +889,12 @@ func (o *Post) UpdateG(ctx context.Context, columns boil.Columns) (int64, error)
 // See boil.Columns.UpdateColumnSet documentation to understand column list inference for updates.
 // Update does not automatically update the record in case of default values. Use .Reload() to refresh the records.
 func (o *Post) Update(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) (int64, error) {
+	if !boil.TimestampsAreSkipped(ctx) {
+		currTime := time.Now().In(boil.GetLocation())
+
+		o.UpdatedAt = currTime
+	}
+
 	var err error
 	if err = o.doBeforeUpdateHooks(ctx, exec); err != nil {
 		return 0, err
@@ -1037,6 +1046,7 @@ func (o *Post) Upsert(ctx context.Context, exec boil.ContextExecutor, updateOnCo
 		if o.CreatedAt.IsZero() {
 			o.CreatedAt = currTime
 		}
+		o.UpdatedAt = currTime
 	}
 
 	if err := o.doBeforeUpsertHooks(ctx, exec); err != nil {
