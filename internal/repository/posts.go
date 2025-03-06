@@ -25,7 +25,7 @@ func (p *postRepository) Create(ctx context.Context, post *service_models.Post) 
 		Title:     post.Title,
 		Content:   post.Content,
 		UserID:    post.UserID,
-		tags:      post.Tags,
+		Tags:      post.Tags,
 		CreatedAt: post.CreatedAt,
 	}
 

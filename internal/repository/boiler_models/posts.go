@@ -18,16 +18,19 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"github.com/volatiletech/sqlboiler/v4/queries/qmhelper"
+	"github.com/volatiletech/sqlboiler/v4/types"
 	"github.com/volatiletech/strmangle"
 )
 
 // Post is an object representing the database table.
 type Post struct {
-	ID        int64     `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Title     string    `boil:"title" json:"title" toml:"title" yaml:"title"`
-	UserID    int64     `boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
-	Content   string    `boil:"content" json:"content" toml:"content" yaml:"content"`
-	CreatedAt time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	ID        int64             `boil:"id" json:"id" toml:"id" yaml:"id"`
+	Title     string            `boil:"title" json:"title" toml:"title" yaml:"title"`
+	UserID    int64             `boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
+	Content   string            `boil:"content" json:"content" toml:"content" yaml:"content"`
+	CreatedAt time.Time         `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	Tags      types.StringArray `boil:"tags" json:"tags,omitempty" toml:"tags" yaml:"tags,omitempty"`
+	UpdateAt  time.Time         `boil:"update_at" json:"update_at" toml:"update_at" yaml:"update_at"`
 
 	R *postR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L postL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -39,12 +42,16 @@ var PostColumns = struct {
 	UserID    string
 	Content   string
 	CreatedAt string
+	Tags      string
+	UpdateAt  string
 }{
 	ID:        "id",
 	Title:     "title",
 	UserID:    "user_id",
 	Content:   "content",
 	CreatedAt: "created_at",
+	Tags:      "tags",
+	UpdateAt:  "update_at",
 }
 
 var PostTableColumns = struct {
@@ -53,12 +60,16 @@ var PostTableColumns = struct {
 	UserID    string
 	Content   string
 	CreatedAt string
+	Tags      string
+	UpdateAt  string
 }{
 	ID:        "posts.id",
 	Title:     "posts.title",
 	UserID:    "posts.user_id",
 	Content:   "posts.content",
 	CreatedAt: "posts.created_at",
+	Tags:      "posts.tags",
+	UpdateAt:  "posts.update_at",
 }
 
 // Generated where
@@ -138,18 +149,48 @@ func (w whereHelpertime_Time) GTE(x time.Time) qm.QueryMod {
 	return qmhelper.Where(w.field, qmhelper.GTE, x)
 }
 
+type whereHelpertypes_StringArray struct{ field string }
+
+func (w whereHelpertypes_StringArray) EQ(x types.StringArray) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, false, x)
+}
+func (w whereHelpertypes_StringArray) NEQ(x types.StringArray) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, true, x)
+}
+func (w whereHelpertypes_StringArray) LT(x types.StringArray) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LT, x)
+}
+func (w whereHelpertypes_StringArray) LTE(x types.StringArray) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LTE, x)
+}
+func (w whereHelpertypes_StringArray) GT(x types.StringArray) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GT, x)
+}
+func (w whereHelpertypes_StringArray) GTE(x types.StringArray) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GTE, x)
+}
+
+func (w whereHelpertypes_StringArray) IsNull() qm.QueryMod { return qmhelper.WhereIsNull(w.field) }
+func (w whereHelpertypes_StringArray) IsNotNull() qm.QueryMod {
+	return qmhelper.WhereIsNotNull(w.field)
+}
+
 var PostWhere = struct {
 	ID        whereHelperint64
 	Title     whereHelperstring
 	UserID    whereHelperint64
 	Content   whereHelperstring
 	CreatedAt whereHelpertime_Time
+	Tags      whereHelpertypes_StringArray
+	UpdateAt  whereHelpertime_Time
 }{
 	ID:        whereHelperint64{field: "\"posts\".\"id\""},
 	Title:     whereHelperstring{field: "\"posts\".\"title\""},
 	UserID:    whereHelperint64{field: "\"posts\".\"user_id\""},
 	Content:   whereHelperstring{field: "\"posts\".\"content\""},
 	CreatedAt: whereHelpertime_Time{field: "\"posts\".\"created_at\""},
+	Tags:      whereHelpertypes_StringArray{field: "\"posts\".\"tags\""},
+	UpdateAt:  whereHelpertime_Time{field: "\"posts\".\"update_at\""},
 }
 
 // PostRels is where relationship names are stored.
@@ -180,9 +221,9 @@ func (r *postR) GetUser() *User {
 type postL struct{}
 
 var (
-	postAllColumns            = []string{"id", "title", "user_id", "content", "created_at"}
+	postAllColumns            = []string{"id", "title", "user_id", "content", "created_at", "tags", "update_at"}
 	postColumnsWithoutDefault = []string{"title", "user_id", "content"}
-	postColumnsWithDefault    = []string{"id", "created_at"}
+	postColumnsWithDefault    = []string{"id", "created_at", "tags", "update_at"}
 	postPrimaryKeyColumns     = []string{"id"}
 	postGeneratedColumns      = []string{}
 )

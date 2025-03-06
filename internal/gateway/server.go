@@ -7,6 +7,7 @@ import (
 	"github.com/saleh-ghazimoradi/Gophergram/config"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/gateway/routes"
 	"github.com/saleh-ghazimoradi/Gophergram/sLogger"
+	"github.com/saleh-ghazimoradi/Gophergram/utils"
 )
 
 func Server() error {
@@ -19,7 +20,11 @@ func Server() error {
 	app.Use(logger.New())  // Logs incoming requests
 
 	// Register routes
-	routes.RegisterRoutes(app)
+	db, err := utils.PostConnection()
+	if err != nil {
+		return err
+	}
+	routes.RegisterRoutes(app, db)
 
 	sLogger.SLogger.Info("Starting server", "port", config.AppConfig.ServerConfig.Port)
 
