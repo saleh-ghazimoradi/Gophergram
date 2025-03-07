@@ -12,8 +12,12 @@ func RegisterRoutes(app *fiber.App, db *sql.DB) {
 	health := handlers.NewHealthHandler()
 
 	postRepository := repository.NewPostRepository(db, db)
+	commentRepository := repository.NewCommentRepository(db, db)
+
 	postService := service.NewPostService(postRepository)
-	postHandler := handlers.NewPostHandler(postService)
+	commentService := service.NewCommentsService(commentRepository)
+
+	postHandler := handlers.NewPostHandler(postService, commentService)
 
 	HealthCheckRoute(app, health)
 	PostRoutes(app, postHandler)

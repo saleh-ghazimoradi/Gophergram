@@ -8,6 +8,7 @@ import "testing"
 // TestToOne tests cannot be run in parallel
 // or deadlocks can occur.
 func TestToOne(t *testing.T) {
+	t.Run("CommentToUserUsingUser", testCommentToOneUserUsingUser)
 	t.Run("PostToUserUsingUser", testPostToOneUserUsingUser)
 }
 
@@ -18,12 +19,14 @@ func TestOneToOne(t *testing.T) {}
 // TestToMany tests cannot be run in parallel
 // or deadlocks can occur.
 func TestToMany(t *testing.T) {
+	t.Run("UserToComments", testUserToManyComments)
 	t.Run("UserToPosts", testUserToManyPosts)
 }
 
 // TestToOneSet tests cannot be run in parallel
 // or deadlocks can occur.
 func TestToOneSet(t *testing.T) {
+	t.Run("CommentToUserUsingComments", testCommentToOneSetOpUserUsingUser)
 	t.Run("PostToUserUsingPosts", testPostToOneSetOpUserUsingUser)
 }
 
@@ -42,6 +45,7 @@ func TestOneToOneRemove(t *testing.T) {}
 // TestToManyAdd tests cannot be run in parallel
 // or deadlocks can occur.
 func TestToManyAdd(t *testing.T) {
+	t.Run("UserToComments", testUserToManyAddOpComments)
 	t.Run("UserToPosts", testUserToManyAddOpPosts)
 }
 

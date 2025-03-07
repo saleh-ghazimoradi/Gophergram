@@ -6,6 +6,8 @@ package boiler_models
 import "testing"
 
 func TestUpsert(t *testing.T) {
+	t.Run("Comments", testCommentsUpsert)
+
 	t.Run("Posts", testPostsUpsert)
 
 	t.Run("SchemaMigrations", testSchemaMigrationsUpsert)

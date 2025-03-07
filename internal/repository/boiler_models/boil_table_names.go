@@ -4,10 +4,12 @@
 package boiler_models
 
 var TableNames = struct {
+	Comments         string
 	Posts            string
 	SchemaMigrations string
 	Users            string
 }{
+	Comments:         "comments",
 	Posts:            "posts",
 	SchemaMigrations: "schema_migrations",
 	Users:            "users",

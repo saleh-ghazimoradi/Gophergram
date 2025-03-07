@@ -12,7 +12,8 @@ import (
 )
 
 type PostHandler struct {
-	postService service.PostService
+	postService    service.PostService
+	commentService service.CommentsService
 }
 
 func (p *PostHandler) CreatePostHandler(ctx *fiber.Ctx) error {
@@ -45,11 +46,19 @@ func (p *PostHandler) GetPostHandler(ctx *fiber.Ctx) error {
 		}
 	}
 
+	comments, err := p.commentService.GetByPostId(context.Background(), id)
+	if err != nil {
+		return helper.InternalServerError(ctx, err)
+	}
+
+	post.Comments = comments
+
 	return helper.SuccessResponse(ctx, "success", post)
 }
 
-func NewPostHandler(postService service.PostService) *PostHandler {
+func NewPostHandler(postService service.PostService, commentService service.CommentsService) *PostHandler {
 	return &PostHandler{
-		postService: postService,
+		postService:    postService,
+		commentService: commentService,
 	}
 }
