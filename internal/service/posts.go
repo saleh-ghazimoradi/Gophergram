@@ -10,6 +10,7 @@ import (
 type PostService interface {
 	Create(ctx context.Context, post *dto.Post) error
 	GetById(ctx context.Context, id int64) (*service_models.Post, error)
+	Delete(ctx context.Context, id int64) error
 }
 
 type postService struct {
@@ -27,6 +28,10 @@ func (p *postService) Create(ctx context.Context, input *dto.Post) error {
 
 func (p *postService) GetById(ctx context.Context, id int64) (*service_models.Post, error) {
 	return p.postRepository.GetById(ctx, id)
+}
+
+func (p *postService) Delete(ctx context.Context, id int64) error {
+	return p.postRepository.Delete(ctx, id)
 }
 
 func NewPostService(postRepository repository.PostRepository) PostService {

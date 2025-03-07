@@ -56,6 +56,21 @@ func (p *PostHandler) GetPostHandler(ctx *fiber.Ctx) error {
 	return helper.SuccessResponse(ctx, "success", post)
 }
 
+func (p *PostHandler) DeletePostHandler(ctx *fiber.Ctx) error {
+	id, _ := strconv.ParseInt(ctx.Params("id"), 10, 64)
+
+	if err := p.postService.Delete(context.Background(), id); err != nil {
+		switch {
+		case errors.Is(err, repository.ErrsNotFound):
+			return helper.NotFound(ctx, err)
+		default:
+			return helper.InternalServerError(ctx, err)
+		}
+	}
+
+	return helper.SuccessResponse(ctx, "the post successfully deleted", nil)
+}
+
 func NewPostHandler(postService service.PostService, commentService service.CommentsService) *PostHandler {
 	return &PostHandler{
 		postService:    postService,
