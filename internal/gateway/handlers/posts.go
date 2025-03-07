@@ -8,8 +8,14 @@ import (
 	"github.com/saleh-ghazimoradi/Gophergram/internal/gateway/helper"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/repository"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/service"
+	"github.com/saleh-ghazimoradi/Gophergram/internal/service/service_models"
+	"github.com/saleh-ghazimoradi/Gophergram/sLogger"
 	"strconv"
 )
+
+type postKey string
+
+const postCtx postKey = "post"
 
 type PostHandler struct {
 	postService    service.PostService
@@ -34,24 +40,20 @@ func (p *PostHandler) CreatePostHandler(ctx *fiber.Ctx) error {
 }
 
 func (p *PostHandler) GetPostHandler(ctx *fiber.Ctx) error {
-	id, _ := strconv.ParseInt(ctx.Params("id"), 10, 64)
+	post := p.GetPostFromContext(ctx)
 
-	post, err := p.postService.GetById(context.Background(), id)
-	if err != nil {
-		switch {
-		case errors.Is(err, repository.ErrsNotFound):
-			return helper.NotFound(ctx, err)
-		default:
-			return helper.InternalServerError(ctx, err)
-		}
-	}
-
-	comments, err := p.commentService.GetByPostId(context.Background(), id)
+	comments, err := p.commentService.GetByPostId(context.Background(), post.ID)
 	if err != nil {
 		return helper.InternalServerError(ctx, err)
 	}
 
 	post.Comments = comments
+
+	return helper.SuccessResponse(ctx, fiber.StatusOK, "success", post)
+}
+
+func (p *PostHandler) UpdatePostHandler(ctx *fiber.Ctx) error {
+	post := p.GetPostFromContext(ctx)
 
 	return helper.SuccessResponse(ctx, fiber.StatusOK, "success", post)
 }
@@ -69,6 +71,35 @@ func (p *PostHandler) DeletePostHandler(ctx *fiber.Ctx) error {
 	}
 
 	return helper.SuccessResponse(ctx, fiber.StatusNoContent, "the post successfully deleted", nil)
+}
+
+func (p *PostHandler) PostsContextMiddleware(ctx *fiber.Ctx) error {
+	id, err := strconv.ParseInt(ctx.Params("id"), 10, 64)
+	if err != nil {
+		return helper.BadRequest(ctx, err)
+	}
+
+	post, err := p.postService.GetById(context.Background(), id)
+	if err != nil {
+		switch {
+		case errors.Is(err, repository.ErrsNotFound):
+			return helper.NotFound(ctx, err)
+		default:
+			return helper.InternalServerError(ctx, err)
+		}
+	}
+
+	ctx.Locals(postCtx, post)
+	return ctx.Next()
+}
+
+func (p *PostHandler) GetPostFromContext(ctx *fiber.Ctx) *service_models.Post {
+	post, ok := ctx.Locals(postCtx).(*service_models.Post)
+	if !ok {
+		sLogger.SLogger.Warn("Post not found in context")
+		return nil
+	}
+	return post
 }
 
 func NewPostHandler(postService service.PostService, commentService service.CommentsService) *PostHandler {

@@ -8,7 +8,7 @@ import (
 func PostRoutes(app *fiber.App, postHandler *handlers.PostHandler) {
 	v1 := app.Group("/v1")
 	v1.Post("/posts", postHandler.CreatePostHandler)
-	v1.Get("/posts/:id", postHandler.GetPostHandler)
-	v1.Delete("/posts/:id", postHandler.DeletePostHandler)
-	//v1.Patch("/posts/:id", postHandler.UpdatePostHandler)
+	v1.Get("/posts/:id", postHandler.PostsContextMiddleware, postHandler.GetPostHandler)
+	v1.Delete("/posts/:id", postHandler.PostsContextMiddleware, postHandler.DeletePostHandler)
+	v1.Patch("/posts/:id", postHandler.PostsContextMiddleware, postHandler.UpdatePostHandler)
 }

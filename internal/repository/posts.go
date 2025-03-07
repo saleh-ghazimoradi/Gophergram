@@ -13,6 +13,7 @@ import (
 type PostRepository interface {
 	Create(ctx context.Context, post *service_models.Post) error
 	GetById(ctx context.Context, id int64) (*service_models.Post, error)
+	//Update(ctx context.Context)
 	Delete(ctx context.Context, id int64) error
 	WithTX(tx *sql.Tx) PostRepository
 }
