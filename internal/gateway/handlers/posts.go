@@ -30,7 +30,7 @@ func (p *PostHandler) CreatePostHandler(ctx *fiber.Ctx) error {
 		return helper.InternalServerError(ctx, err)
 	}
 
-	return helper.CreatedResponse(ctx, "post created successfully", post)
+	return helper.SuccessResponse(ctx, fiber.StatusCreated, "post created successfully", post)
 }
 
 func (p *PostHandler) GetPostHandler(ctx *fiber.Ctx) error {
@@ -53,7 +53,7 @@ func (p *PostHandler) GetPostHandler(ctx *fiber.Ctx) error {
 
 	post.Comments = comments
 
-	return helper.SuccessResponse(ctx, "success", post)
+	return helper.SuccessResponse(ctx, fiber.StatusOK, "success", post)
 }
 
 func (p *PostHandler) DeletePostHandler(ctx *fiber.Ctx) error {
@@ -68,7 +68,7 @@ func (p *PostHandler) DeletePostHandler(ctx *fiber.Ctx) error {
 		}
 	}
 
-	return helper.SuccessResponse(ctx, "the post successfully deleted", nil)
+	return helper.SuccessResponse(ctx, fiber.StatusNoContent, "the post successfully deleted", nil)
 }
 
 func NewPostHandler(postService service.PostService, commentService service.CommentsService) *PostHandler {
