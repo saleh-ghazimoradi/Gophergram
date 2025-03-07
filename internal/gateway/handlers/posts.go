@@ -21,6 +21,10 @@ func (p *PostHandler) CreatePostHandler(ctx *fiber.Ctx) error {
 		return helper.BadRequest(ctx, err)
 	}
 
+	if err := helper.Validator.Struct(post); err != nil {
+		return helper.BadRequest(ctx, err)
+	}
+
 	if err := p.postService.Create(context.Background(), &post); err != nil {
 		return helper.InternalServerError(ctx, err)
 	}
