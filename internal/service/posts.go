@@ -4,7 +4,9 @@ import (
 	"context"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/gateway/dto"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/repository"
+	"github.com/saleh-ghazimoradi/Gophergram/internal/repository/boiler_models"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/service/service_models"
+	"time"
 )
 
 type PostService interface {
@@ -19,31 +21,51 @@ type postService struct {
 }
 
 func (p *postService) Create(ctx context.Context, input *dto.Post) error {
-	return p.postRepository.Create(ctx, &service_models.Post{
-		Content: input.Content,
-		Title:   input.Title,
-		Tags:    input.Tags,
-		UserID:  1,
-	})
+	boilerPost := &boiler_models.Post{
+		Title:     input.Title,
+		Content:   input.Content,
+		UserID:    1,
+		CreatedAt: time.Now(),
+	}
+
+	if err := p.postRepository.Create(ctx, boilerPost); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (p *postService) GetById(ctx context.Context, id int64) (*service_models.Post, error) {
-	return p.postRepository.GetById(ctx, id)
+	boilerPost, err := p.postRepository.GetById(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &service_models.Post{
+		ID:        boilerPost.ID,
+		Title:     boilerPost.Title,
+		Content:   boilerPost.Content,
+		UserID:    boilerPost.UserID,
+		CreatedAt: boilerPost.CreatedAt,
+		UpdatedAt: boilerPost.UpdatedAt,
+	}, nil
 }
 
 func (p *postService) Update(ctx context.Context, input *dto.UpdatePost, post *service_models.Post) error {
-	// Map fields from DTO to the service model
+	existingPost, err := p.postRepository.GetById(ctx, post.ID)
+	if err != nil {
+		return err
+	}
+
 	if input.Title != nil {
-		post.Title = *input.Title
+		existingPost.Title = *input.Title
 	}
 
 	if input.Content != nil {
-		post.Content = *input.Content
+		existingPost.Content = *input.Content
 	}
 
-	// Update the post in the repository
-	err := p.postRepository.Update(ctx, post)
-	if err != nil {
+	if err = p.postRepository.Update(ctx, existingPost); err != nil {
 		return err
 	}
 

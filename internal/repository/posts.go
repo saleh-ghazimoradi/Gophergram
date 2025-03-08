@@ -5,15 +5,14 @@ import (
 	"database/sql"
 	"github.com/friendsofgo/errors"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/repository/boiler_models"
-	"github.com/saleh-ghazimoradi/Gophergram/internal/service/service_models"
 	"github.com/saleh-ghazimoradi/Gophergram/sLogger"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 )
 
 type PostRepository interface {
-	Create(ctx context.Context, post *service_models.Post) error
-	GetById(ctx context.Context, id int64) (*service_models.Post, error)
-	Update(ctx context.Context, post *service_models.Post) error
+	Create(ctx context.Context, post *boiler_models.Post) error
+	GetById(ctx context.Context, id int64) (*boiler_models.Post, error)
+	Update(ctx context.Context, post *boiler_models.Post) error
 	Delete(ctx context.Context, id int64) error
 	WithTX(tx *sql.Tx) PostRepository
 }
@@ -24,24 +23,15 @@ type postRepository struct {
 	tx      *sql.Tx
 }
 
-func (p *postRepository) Create(ctx context.Context, post *service_models.Post) error {
-	newPost := &boiler_models.Post{
-		Title:     post.Title,
-		Content:   post.Content,
-		UserID:    post.UserID,
-		Tags:      post.Tags,
-		CreatedAt: post.CreatedAt,
-	}
-
-	if err := newPost.Insert(ctx, exec(p.dbWrite, p.tx), boil.Infer()); err != nil {
+func (p *postRepository) Create(ctx context.Context, post *boiler_models.Post) error {
+	if err := post.Insert(ctx, exec(p.dbWrite, p.tx), boil.Infer()); err != nil {
 		sLogger.SLogger.Error("failed to insert the post: ", err)
 		return err
 	}
-
 	return nil
 }
 
-func (p *postRepository) GetById(ctx context.Context, id int64) (*service_models.Post, error) {
+func (p *postRepository) GetById(ctx context.Context, id int64) (*boiler_models.Post, error) {
 	post, err := boiler_models.FindPost(ctx, exec(p.dbRead, p.tx), id)
 	if err != nil {
 		sLogger.SLogger.Error("failed to retrieve the post: ", err)
@@ -52,40 +42,15 @@ func (p *postRepository) GetById(ctx context.Context, id int64) (*service_models
 			return nil, err
 		}
 	}
-
-	return &service_models.Post{
-		ID:        post.ID,
-		Title:     post.Title,
-		Content:   post.Content,
-		UserID:    post.UserID,
-		Tags:      post.Tags,
-		CreatedAt: post.CreatedAt,
-		UpdatedAt: post.UpdatedAt,
-	}, nil
+	return post, nil
 }
 
-func (p *postRepository) Update(ctx context.Context, post *service_models.Post) error {
-	// Convert service_models.Post to boiler_models.Post
-	boilerPost := &boiler_models.Post{
-		ID:        post.ID,
-		Title:     post.Title,
-		Content:   post.Content,
-		UserID:    post.UserID,
-		CreatedAt: post.CreatedAt,
-		UpdatedAt: post.UpdatedAt,
-	}
-
-	// Update the post in the database
-	_, err := boilerPost.Update(ctx, exec(p.dbWrite, p.tx), boil.Infer())
+func (p *postRepository) Update(ctx context.Context, post *boiler_models.Post) error {
+	_, err := post.Update(ctx, exec(p.dbWrite, p.tx), boil.Infer())
 	if err != nil {
+		sLogger.SLogger.Error("failed to update the post: ", err)
 		return err
 	}
-
-	// Map the updated SQLBoiler model back to the service model
-	post.Title = boilerPost.Title
-	post.Content = boilerPost.Content
-	post.UpdatedAt = boilerPost.UpdatedAt
-
 	return nil
 }
 
@@ -105,7 +70,6 @@ func (p *postRepository) Delete(ctx context.Context, id int64) error {
 		sLogger.SLogger.Error("failed to delete the post: ", err)
 		return err
 	}
-
 	return nil
 }
 
