@@ -32,7 +32,7 @@ func (p *PostHandler) CreatePostHandler(ctx *fiber.Ctx) error {
 		return helper.BadRequest(ctx, err)
 	}
 
-	if err := p.postService.Create(context.Background(), &post); err != nil {
+	if err := p.postService.Create(ctx.Context(), &post); err != nil {
 		return helper.InternalServerError(ctx, err)
 	}
 
@@ -54,6 +54,18 @@ func (p *PostHandler) GetPostHandler(ctx *fiber.Ctx) error {
 
 func (p *PostHandler) UpdatePostHandler(ctx *fiber.Ctx) error {
 	post := p.GetPostFromContext(ctx)
+	var payload dto.UpdatePost
+	if err := ctx.BodyParser(&payload); err != nil {
+		return helper.BadRequest(ctx, err)
+	}
+
+	if err := helper.Validator.Struct(payload); err != nil {
+		return helper.BadRequest(ctx, err)
+	}
+
+	if err := p.postService.Update(ctx.Context(), &payload, post); err != nil {
+		return helper.InternalServerError(ctx, err)
+	}
 
 	return helper.SuccessResponse(ctx, fiber.StatusOK, "success", post)
 }
@@ -61,7 +73,7 @@ func (p *PostHandler) UpdatePostHandler(ctx *fiber.Ctx) error {
 func (p *PostHandler) DeletePostHandler(ctx *fiber.Ctx) error {
 	id, _ := strconv.ParseInt(ctx.Params("id"), 10, 64)
 
-	if err := p.postService.Delete(context.Background(), id); err != nil {
+	if err := p.postService.Delete(ctx.Context(), id); err != nil {
 		switch {
 		case errors.Is(err, repository.ErrsNotFound):
 			return helper.NotFound(ctx, err)
@@ -79,7 +91,7 @@ func (p *PostHandler) PostsContextMiddleware(ctx *fiber.Ctx) error {
 		return helper.BadRequest(ctx, err)
 	}
 
-	post, err := p.postService.GetById(context.Background(), id)
+	post, err := p.postService.GetById(ctx.Context(), id)
 	if err != nil {
 		switch {
 		case errors.Is(err, repository.ErrsNotFound):

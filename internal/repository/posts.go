@@ -13,7 +13,7 @@ import (
 type PostRepository interface {
 	Create(ctx context.Context, post *service_models.Post) error
 	GetById(ctx context.Context, id int64) (*service_models.Post, error)
-	//Update(ctx context.Context)
+	Update(ctx context.Context, post *service_models.Post) error
 	Delete(ctx context.Context, id int64) error
 	WithTX(tx *sql.Tx) PostRepository
 }
@@ -62,6 +62,31 @@ func (p *postRepository) GetById(ctx context.Context, id int64) (*service_models
 		CreatedAt: post.CreatedAt,
 		UpdatedAt: post.UpdatedAt,
 	}, nil
+}
+
+func (p *postRepository) Update(ctx context.Context, post *service_models.Post) error {
+	// Convert service_models.Post to boiler_models.Post
+	boilerPost := &boiler_models.Post{
+		ID:        post.ID,
+		Title:     post.Title,
+		Content:   post.Content,
+		UserID:    post.UserID,
+		CreatedAt: post.CreatedAt,
+		UpdatedAt: post.UpdatedAt,
+	}
+
+	// Update the post in the database
+	_, err := boilerPost.Update(ctx, exec(p.dbWrite, p.tx), boil.Infer())
+	if err != nil {
+		return err
+	}
+
+	// Map the updated SQLBoiler model back to the service model
+	post.Title = boilerPost.Title
+	post.Content = boilerPost.Content
+	post.UpdatedAt = boilerPost.UpdatedAt
+
+	return nil
 }
 
 func (p *postRepository) Delete(ctx context.Context, id int64) error {
