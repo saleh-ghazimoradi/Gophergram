@@ -4,12 +4,14 @@ import (
 	"context"
 	"database/sql"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/repository/boiler_models"
-	"github.com/saleh-ghazimoradi/Gophergram/internal/service/service_models"
+	"github.com/saleh-ghazimoradi/Gophergram/sLogger"
+	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
 type CommentRepository interface {
-	GetByPostId(ctx context.Context, postId int64) ([]service_models.Comment, error)
+	GetByPostId(ctx context.Context, postId int64) ([]*boiler_models.Comment, error)
+	Create(ctx context.Context, comment *boiler_models.Comment) error
 	WithTx(tx *sql.Tx) CommentRepository
 }
 
@@ -19,7 +21,7 @@ type commentRepository struct {
 	tx      *sql.Tx
 }
 
-func (c *commentRepository) GetByPostId(ctx context.Context, postId int64) ([]service_models.Comment, error) {
+func (c *commentRepository) GetByPostId(ctx context.Context, postId int64) ([]*boiler_models.Comment, error) {
 	comments, err := boiler_models.Comments(
 		boiler_models.CommentWhere.PostID.EQ(postId),
 		qm.OrderBy("created_at DESC"),
@@ -27,28 +29,19 @@ func (c *commentRepository) GetByPostId(ctx context.Context, postId int64) ([]se
 	).All(ctx, exec(c.dbRead, c.tx))
 
 	if err != nil {
+		sLogger.SLogger.Error("failed to fetch comments by post ID", err)
 		return nil, err
 	}
 
-	serviceComments := make([]service_models.Comment, len(comments))
-	for i, comment := range comments {
-		serviceComments[i] = service_models.Comment{
-			Id:        comment.ID,
-			PostId:    comment.PostID,
-			UserId:    comment.UserID,
-			Content:   comment.Content,
-			CreatedAt: comment.CreatedAt,
-		}
+	return comments, nil
+}
 
-		if comment.R != nil && comment.R.User != nil {
-			serviceComments[i].User = service_models.Users{
-				ID:       comment.R.User.ID,
-				Username: comment.R.User.Username,
-			}
-		}
+func (c *commentRepository) Create(ctx context.Context, comment *boiler_models.Comment) error {
+	if err := comment.Insert(ctx, c.dbWrite, boil.Infer()); err != nil {
+		sLogger.SLogger.Error("failed to insert the comment", err)
+		return err
 	}
-
-	return serviceComments, nil
+	return nil
 }
 
 func (c *commentRepository) WithTx(tx *sql.Tx) CommentRepository {
