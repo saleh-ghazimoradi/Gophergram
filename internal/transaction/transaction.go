@@ -3,12 +3,14 @@ package transaction
 import (
 	"context"
 	"database/sql"
+	"github.com/friendsofgo/errors"
 )
 
 type Transaction interface {
 	Begin(ctx context.Context) (*sql.Tx, error)
 	Commit(tx *sql.Tx) error
 	Rollback(tx *sql.Tx) error
+	WithTx(ctx context.Context, fn func(*sql.Tx) error) error
 }
 
 type transaction struct {
@@ -27,29 +29,32 @@ func (t *transaction) Rollback(tx *sql.Tx) error {
 	return tx.Rollback()
 }
 
-func NewTransaction(db *sql.DB) Transaction {
-	return &transaction{
-		db: db,
-	}
-}
-
-func WithTransaction(ctx context.Context, tm Transaction, fn func(tx *sql.Tx) error) error {
-	tx, err := tm.Begin(ctx)
+func (t *transaction) WithTx(ctx context.Context, fn func(*sql.Tx) error) error {
+	tx, err := t.Begin(ctx)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to begin transaction")
 	}
 
 	defer func() {
 		if p := recover(); p != nil {
-			tm.Rollback(tx)
+			t.Rollback(tx)
 			panic(p)
 		} else if err != nil {
-			tm.Rollback(tx)
+			t.Rollback(tx)
 		} else {
-			err = tm.Commit(tx)
+			err = t.Commit(tx)
+			if err != nil {
+				t.Rollback(tx)
+			}
 		}
 	}()
 
 	err = fn(tx)
 	return err
+}
+
+func NewTransaction(db *sql.DB) Transaction {
+	return &transaction{
+		db: db,
+	}
 }

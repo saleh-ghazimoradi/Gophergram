@@ -25,7 +25,7 @@ type postService struct {
 }
 
 func (p *postService) Create(ctx context.Context, input *dto.Post) error {
-	return transaction.WithTransaction(ctx, p.transaction, func(tx *sql.Tx) error {
+	return p.transaction.WithTx(ctx, func(tx *sql.Tx) error {
 		repoWithTx := p.postRepository.WithTX(tx)
 		boilerPost := &boiler_models.Post{
 			Title:     input.Title,
@@ -58,7 +58,7 @@ func (p *postService) GetById(ctx context.Context, id int64) (*service_models.Po
 }
 
 func (p *postService) Update(ctx context.Context, input *dto.UpdatePost, post *service_models.Post) error {
-	return transaction.WithTransaction(ctx, p.transaction, func(tx *sql.Tx) error {
+	return p.transaction.WithTx(ctx, func(tx *sql.Tx) error {
 		repoWithTx := p.postRepository.WithTX(tx)
 		existingPost, err := repoWithTx.GetById(ctx, post.ID)
 		if err != nil {
@@ -86,7 +86,7 @@ func (p *postService) Update(ctx context.Context, input *dto.UpdatePost, post *s
 }
 
 func (p *postService) Delete(ctx context.Context, id int64) error {
-	return transaction.WithTransaction(ctx, p.transaction, func(tx *sql.Tx) error {
+	return p.transaction.WithTx(ctx, func(tx *sql.Tx) error {
 		repoWithTx := p.postRepository.WithTX(tx)
 		return repoWithTx.Delete(ctx, id)
 	})
