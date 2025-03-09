@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"github.com/friendsofgo/errors"
+	"github.com/saleh-ghazimoradi/Gophergram/config"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/repository/boiler_models"
 	"github.com/saleh-ghazimoradi/Gophergram/sLogger"
 	"github.com/volatiletech/sqlboiler/v4/boil"
@@ -24,6 +25,9 @@ type postRepository struct {
 }
 
 func (p *postRepository) Create(ctx context.Context, post *boiler_models.Post) error {
+	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.Database.Timeout)
+	defer cancel()
+
 	if err := post.Insert(ctx, exec(p.dbWrite, p.tx), boil.Infer()); err != nil {
 		sLogger.SLogger.Error("failed to insert the post: ", err)
 		return err
@@ -32,6 +36,9 @@ func (p *postRepository) Create(ctx context.Context, post *boiler_models.Post) e
 }
 
 func (p *postRepository) GetById(ctx context.Context, id int64) (*boiler_models.Post, error) {
+	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.Database.Timeout)
+	defer cancel()
+
 	post, err := boiler_models.FindPost(ctx, exec(p.dbRead, p.tx), id)
 	if err != nil {
 		sLogger.SLogger.Error("failed to retrieve the post: ", err)
@@ -46,6 +53,9 @@ func (p *postRepository) GetById(ctx context.Context, id int64) (*boiler_models.
 }
 
 func (p *postRepository) Update(ctx context.Context, post *boiler_models.Post) error {
+	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.Database.Timeout)
+	defer cancel()
+
 	currentPost, err := boiler_models.FindPost(ctx, exec(p.dbRead, p.tx), post.ID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -70,6 +80,9 @@ func (p *postRepository) Update(ctx context.Context, post *boiler_models.Post) e
 }
 
 func (p *postRepository) Delete(ctx context.Context, id int64) error {
+	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.Database.Timeout)
+	defer cancel()
+
 	post, err := boiler_models.FindPost(ctx, exec(p.dbRead, p.tx), id)
 	if err != nil {
 		sLogger.SLogger.Error("failed to retrieve the post: ", err)
