@@ -64,7 +64,12 @@ func (p *PostHandler) UpdatePostHandler(ctx *fiber.Ctx) error {
 	}
 
 	if err := p.postService.Update(ctx.Context(), &payload, post); err != nil {
-		return helper.InternalServerError(ctx, err)
+		switch {
+		case errors.Is(err, errors.New("conflict: record has been modified by another transaction")):
+			return helper.ConflictResponse(ctx, err)
+		default:
+			return helper.InternalServerError(ctx, err)
+		}
 	}
 
 	return helper.SuccessResponse(ctx, fiber.StatusOK, "success", post)

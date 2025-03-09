@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"github.com/friendsofgo/errors"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/gateway/dto"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/repository"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/repository/boiler_models"
@@ -48,6 +49,7 @@ func (p *postService) GetById(ctx context.Context, id int64) (*service_models.Po
 		UserID:    boilerPost.UserID,
 		CreatedAt: boilerPost.CreatedAt,
 		UpdatedAt: boilerPost.UpdatedAt,
+		Version:   boilerPost.Version.Int,
 	}, nil
 }
 
@@ -66,8 +68,13 @@ func (p *postService) Update(ctx context.Context, input *dto.UpdatePost, post *s
 	}
 
 	if err = p.postRepository.Update(ctx, existingPost); err != nil {
+		if errors.Is(err, errors.New("optimistic lock failed")) {
+			return errors.New("conflict: record has been modified by another transaction")
+		}
 		return err
 	}
+
+	post.Version = existingPost.Version.Int
 
 	return nil
 }

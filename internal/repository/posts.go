@@ -46,7 +46,22 @@ func (p *postRepository) GetById(ctx context.Context, id int64) (*boiler_models.
 }
 
 func (p *postRepository) Update(ctx context.Context, post *boiler_models.Post) error {
-	_, err := post.Update(ctx, exec(p.dbWrite, p.tx), boil.Infer())
+	currentPost, err := boiler_models.FindPost(ctx, exec(p.dbRead, p.tx), post.ID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrsNotFound
+		}
+		sLogger.SLogger.Error("failed to retrieve the post: ", err)
+		return err
+	}
+
+	if currentPost.Version != post.Version {
+		return errors.New("optimistic lock failed: record has been modified by another transaction")
+	}
+
+	post.Version.Int++
+
+	_, err = post.Update(ctx, exec(p.dbWrite, p.tx), boil.Infer())
 	if err != nil {
 		sLogger.SLogger.Error("failed to update the post: ", err)
 		return err

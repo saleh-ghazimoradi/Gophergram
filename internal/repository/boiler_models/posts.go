@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/friendsofgo/errors"
+	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
@@ -31,6 +32,7 @@ type Post struct {
 	CreatedAt time.Time         `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 	Tags      types.StringArray `boil:"tags" json:"tags,omitempty" toml:"tags" yaml:"tags,omitempty"`
 	UpdatedAt time.Time         `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+	Version   null.Int          `boil:"version" json:"version,omitempty" toml:"version" yaml:"version,omitempty"`
 
 	R *postR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L postL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -44,6 +46,7 @@ var PostColumns = struct {
 	CreatedAt string
 	Tags      string
 	UpdatedAt string
+	Version   string
 }{
 	ID:        "id",
 	Title:     "title",
@@ -52,6 +55,7 @@ var PostColumns = struct {
 	CreatedAt: "created_at",
 	Tags:      "tags",
 	UpdatedAt: "updated_at",
+	Version:   "version",
 }
 
 var PostTableColumns = struct {
@@ -62,6 +66,7 @@ var PostTableColumns = struct {
 	CreatedAt string
 	Tags      string
 	UpdatedAt string
+	Version   string
 }{
 	ID:        "posts.id",
 	Title:     "posts.title",
@@ -70,6 +75,7 @@ var PostTableColumns = struct {
 	CreatedAt: "posts.created_at",
 	Tags:      "posts.tags",
 	UpdatedAt: "posts.updated_at",
+	Version:   "posts.version",
 }
 
 // Generated where
@@ -100,6 +106,44 @@ func (w whereHelpertypes_StringArray) IsNotNull() qm.QueryMod {
 	return qmhelper.WhereIsNotNull(w.field)
 }
 
+type whereHelpernull_Int struct{ field string }
+
+func (w whereHelpernull_Int) EQ(x null.Int) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, false, x)
+}
+func (w whereHelpernull_Int) NEQ(x null.Int) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, true, x)
+}
+func (w whereHelpernull_Int) LT(x null.Int) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LT, x)
+}
+func (w whereHelpernull_Int) LTE(x null.Int) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LTE, x)
+}
+func (w whereHelpernull_Int) GT(x null.Int) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GT, x)
+}
+func (w whereHelpernull_Int) GTE(x null.Int) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GTE, x)
+}
+func (w whereHelpernull_Int) IN(slice []int) qm.QueryMod {
+	values := make([]interface{}, 0, len(slice))
+	for _, value := range slice {
+		values = append(values, value)
+	}
+	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
+}
+func (w whereHelpernull_Int) NIN(slice []int) qm.QueryMod {
+	values := make([]interface{}, 0, len(slice))
+	for _, value := range slice {
+		values = append(values, value)
+	}
+	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
+}
+
+func (w whereHelpernull_Int) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
+func (w whereHelpernull_Int) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
+
 var PostWhere = struct {
 	ID        whereHelperint64
 	Title     whereHelperstring
@@ -108,6 +152,7 @@ var PostWhere = struct {
 	CreatedAt whereHelpertime_Time
 	Tags      whereHelpertypes_StringArray
 	UpdatedAt whereHelpertime_Time
+	Version   whereHelpernull_Int
 }{
 	ID:        whereHelperint64{field: "\"posts\".\"id\""},
 	Title:     whereHelperstring{field: "\"posts\".\"title\""},
@@ -116,6 +161,7 @@ var PostWhere = struct {
 	CreatedAt: whereHelpertime_Time{field: "\"posts\".\"created_at\""},
 	Tags:      whereHelpertypes_StringArray{field: "\"posts\".\"tags\""},
 	UpdatedAt: whereHelpertime_Time{field: "\"posts\".\"updated_at\""},
+	Version:   whereHelpernull_Int{field: "\"posts\".\"version\""},
 }
 
 // PostRels is where relationship names are stored.
@@ -146,9 +192,9 @@ func (r *postR) GetUser() *User {
 type postL struct{}
 
 var (
-	postAllColumns            = []string{"id", "title", "user_id", "content", "created_at", "tags", "updated_at"}
+	postAllColumns            = []string{"id", "title", "user_id", "content", "created_at", "tags", "updated_at", "version"}
 	postColumnsWithoutDefault = []string{"title", "user_id", "content"}
-	postColumnsWithDefault    = []string{"id", "created_at", "tags", "updated_at"}
+	postColumnsWithDefault    = []string{"id", "created_at", "tags", "updated_at", "version"}
 	postPrimaryKeyColumns     = []string{"id"}
 	postGeneratedColumns      = []string{}
 )
