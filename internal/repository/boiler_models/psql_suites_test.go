@@ -8,6 +8,8 @@ import "testing"
 func TestUpsert(t *testing.T) {
 	t.Run("Comments", testCommentsUpsert)
 
+	t.Run("Followers", testFollowersUpsert)
+
 	t.Run("Posts", testPostsUpsert)
 
 	t.Run("SchemaMigrations", testSchemaMigrationsUpsert)

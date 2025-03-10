@@ -29,7 +29,7 @@ func (c *commentRepository) GetByPostId(ctx context.Context, postId int64) ([]*b
 	).All(ctx, exec(c.dbRead, c.tx))
 
 	if err != nil {
-		sLogger.SLogger.Error("failed to fetch comments by post ID", err)
+		sLogger.SLogger.Error("failed to fetch comments by post ID", "err:", err.Error())
 		return nil, err
 	}
 
@@ -38,7 +38,7 @@ func (c *commentRepository) GetByPostId(ctx context.Context, postId int64) ([]*b
 
 func (c *commentRepository) Create(ctx context.Context, comment *boiler_models.Comment) error {
 	if err := comment.Insert(ctx, c.dbWrite, boil.Infer()); err != nil {
-		sLogger.SLogger.Error("failed to insert the comment", err)
+		sLogger.SLogger.Error("failed to insert the comment", "err", err.Error())
 		return err
 	}
 	return nil

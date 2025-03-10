@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"github.com/friendsofgo/errors"
+	"errors"
 	"github.com/saleh-ghazimoradi/Gophergram/config"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/repository/boiler_models"
 	"github.com/saleh-ghazimoradi/Gophergram/sLogger"
@@ -29,7 +29,7 @@ func (p *postRepository) Create(ctx context.Context, post *boiler_models.Post) e
 	defer cancel()
 
 	if err := post.Insert(ctx, exec(p.dbWrite, p.tx), boil.Infer()); err != nil {
-		sLogger.SLogger.Error("failed to insert the post: ", err)
+		sLogger.SLogger.Error("failed to insert the post: ", "err", err.Error())
 		return err
 	}
 	return nil
@@ -41,7 +41,7 @@ func (p *postRepository) GetById(ctx context.Context, id int64) (*boiler_models.
 
 	post, err := boiler_models.FindPost(ctx, exec(p.dbRead, p.tx), id)
 	if err != nil {
-		sLogger.SLogger.Error("failed to retrieve the post: ", err)
+		sLogger.SLogger.Error("failed to retrieve the post: ", "err", err.Error())
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return nil, ErrsNotFound
@@ -61,7 +61,7 @@ func (p *postRepository) Update(ctx context.Context, post *boiler_models.Post) e
 		if errors.Is(err, sql.ErrNoRows) {
 			return ErrsNotFound
 		}
-		sLogger.SLogger.Error("failed to retrieve the post: ", err)
+		sLogger.SLogger.Error("failed to retrieve the post: ", "err", err.Error())
 		return err
 	}
 
@@ -73,7 +73,7 @@ func (p *postRepository) Update(ctx context.Context, post *boiler_models.Post) e
 
 	_, err = post.Update(ctx, exec(p.dbWrite, p.tx), boil.Infer())
 	if err != nil {
-		sLogger.SLogger.Error("failed to update the post: ", err)
+		sLogger.SLogger.Error("failed to update the post: ", "err", err.Error())
 		return err
 	}
 	return nil
@@ -85,7 +85,7 @@ func (p *postRepository) Delete(ctx context.Context, id int64) error {
 
 	post, err := boiler_models.FindPost(ctx, exec(p.dbRead, p.tx), id)
 	if err != nil {
-		sLogger.SLogger.Error("failed to retrieve the post: ", err)
+		sLogger.SLogger.Error("failed to retrieve the post: ", "err", err.Error())
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return ErrsNotFound
@@ -95,7 +95,7 @@ func (p *postRepository) Delete(ctx context.Context, id int64) error {
 	}
 	_, err = post.Delete(ctx, exec(p.dbWrite, p.tx))
 	if err != nil {
-		sLogger.SLogger.Error("failed to delete the post: ", err)
+		sLogger.SLogger.Error("failed to delete the post: ", "err", err.Error())
 		return err
 	}
 	return nil

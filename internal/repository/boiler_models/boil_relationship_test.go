@@ -9,6 +9,8 @@ import "testing"
 // or deadlocks can occur.
 func TestToOne(t *testing.T) {
 	t.Run("CommentToUserUsingUser", testCommentToOneUserUsingUser)
+	t.Run("FollowerToUserUsingFollower", testFollowerToOneUserUsingFollower)
+	t.Run("FollowerToUserUsingUser", testFollowerToOneUserUsingUser)
 	t.Run("PostToUserUsingUser", testPostToOneUserUsingUser)
 }
 
@@ -20,6 +22,8 @@ func TestOneToOne(t *testing.T) {}
 // or deadlocks can occur.
 func TestToMany(t *testing.T) {
 	t.Run("UserToComments", testUserToManyComments)
+	t.Run("UserToFollowerFollowers", testUserToManyFollowerFollowers)
+	t.Run("UserToFollowers", testUserToManyFollowers)
 	t.Run("UserToPosts", testUserToManyPosts)
 }
 
@@ -27,6 +31,8 @@ func TestToMany(t *testing.T) {
 // or deadlocks can occur.
 func TestToOneSet(t *testing.T) {
 	t.Run("CommentToUserUsingComments", testCommentToOneSetOpUserUsingUser)
+	t.Run("FollowerToUserUsingFollowerFollowers", testFollowerToOneSetOpUserUsingFollower)
+	t.Run("FollowerToUserUsingFollowers", testFollowerToOneSetOpUserUsingUser)
 	t.Run("PostToUserUsingPosts", testPostToOneSetOpUserUsingUser)
 }
 
@@ -46,6 +52,8 @@ func TestOneToOneRemove(t *testing.T) {}
 // or deadlocks can occur.
 func TestToManyAdd(t *testing.T) {
 	t.Run("UserToComments", testUserToManyAddOpComments)
+	t.Run("UserToFollowerFollowers", testUserToManyAddOpFollowerFollowers)
+	t.Run("UserToFollowers", testUserToManyAddOpFollowers)
 	t.Run("UserToPosts", testUserToManyAddOpPosts)
 }
 

@@ -13,6 +13,7 @@ import "testing"
 // Separating the tests thusly grants avoidance of Postgres deadlocks.
 func TestParent(t *testing.T) {
 	t.Run("Comments", testComments)
+	t.Run("Followers", testFollowers)
 	t.Run("Posts", testPosts)
 	t.Run("SchemaMigrations", testSchemaMigrations)
 	t.Run("Users", testUsers)
@@ -20,6 +21,7 @@ func TestParent(t *testing.T) {
 
 func TestDelete(t *testing.T) {
 	t.Run("Comments", testCommentsDelete)
+	t.Run("Followers", testFollowersDelete)
 	t.Run("Posts", testPostsDelete)
 	t.Run("SchemaMigrations", testSchemaMigrationsDelete)
 	t.Run("Users", testUsersDelete)
@@ -27,6 +29,7 @@ func TestDelete(t *testing.T) {
 
 func TestQueryDeleteAll(t *testing.T) {
 	t.Run("Comments", testCommentsQueryDeleteAll)
+	t.Run("Followers", testFollowersQueryDeleteAll)
 	t.Run("Posts", testPostsQueryDeleteAll)
 	t.Run("SchemaMigrations", testSchemaMigrationsQueryDeleteAll)
 	t.Run("Users", testUsersQueryDeleteAll)
@@ -34,6 +37,7 @@ func TestQueryDeleteAll(t *testing.T) {
 
 func TestSliceDeleteAll(t *testing.T) {
 	t.Run("Comments", testCommentsSliceDeleteAll)
+	t.Run("Followers", testFollowersSliceDeleteAll)
 	t.Run("Posts", testPostsSliceDeleteAll)
 	t.Run("SchemaMigrations", testSchemaMigrationsSliceDeleteAll)
 	t.Run("Users", testUsersSliceDeleteAll)
@@ -41,6 +45,7 @@ func TestSliceDeleteAll(t *testing.T) {
 
 func TestExists(t *testing.T) {
 	t.Run("Comments", testCommentsExists)
+	t.Run("Followers", testFollowersExists)
 	t.Run("Posts", testPostsExists)
 	t.Run("SchemaMigrations", testSchemaMigrationsExists)
 	t.Run("Users", testUsersExists)
@@ -48,6 +53,7 @@ func TestExists(t *testing.T) {
 
 func TestFind(t *testing.T) {
 	t.Run("Comments", testCommentsFind)
+	t.Run("Followers", testFollowersFind)
 	t.Run("Posts", testPostsFind)
 	t.Run("SchemaMigrations", testSchemaMigrationsFind)
 	t.Run("Users", testUsersFind)
@@ -55,6 +61,7 @@ func TestFind(t *testing.T) {
 
 func TestBind(t *testing.T) {
 	t.Run("Comments", testCommentsBind)
+	t.Run("Followers", testFollowersBind)
 	t.Run("Posts", testPostsBind)
 	t.Run("SchemaMigrations", testSchemaMigrationsBind)
 	t.Run("Users", testUsersBind)
@@ -62,6 +69,7 @@ func TestBind(t *testing.T) {
 
 func TestOne(t *testing.T) {
 	t.Run("Comments", testCommentsOne)
+	t.Run("Followers", testFollowersOne)
 	t.Run("Posts", testPostsOne)
 	t.Run("SchemaMigrations", testSchemaMigrationsOne)
 	t.Run("Users", testUsersOne)
@@ -69,6 +77,7 @@ func TestOne(t *testing.T) {
 
 func TestAll(t *testing.T) {
 	t.Run("Comments", testCommentsAll)
+	t.Run("Followers", testFollowersAll)
 	t.Run("Posts", testPostsAll)
 	t.Run("SchemaMigrations", testSchemaMigrationsAll)
 	t.Run("Users", testUsersAll)
@@ -76,6 +85,7 @@ func TestAll(t *testing.T) {
 
 func TestCount(t *testing.T) {
 	t.Run("Comments", testCommentsCount)
+	t.Run("Followers", testFollowersCount)
 	t.Run("Posts", testPostsCount)
 	t.Run("SchemaMigrations", testSchemaMigrationsCount)
 	t.Run("Users", testUsersCount)
@@ -83,6 +93,7 @@ func TestCount(t *testing.T) {
 
 func TestHooks(t *testing.T) {
 	t.Run("Comments", testCommentsHooks)
+	t.Run("Followers", testFollowersHooks)
 	t.Run("Posts", testPostsHooks)
 	t.Run("SchemaMigrations", testSchemaMigrationsHooks)
 	t.Run("Users", testUsersHooks)
@@ -91,6 +102,8 @@ func TestHooks(t *testing.T) {
 func TestInsert(t *testing.T) {
 	t.Run("Comments", testCommentsInsert)
 	t.Run("Comments", testCommentsInsertWhitelist)
+	t.Run("Followers", testFollowersInsert)
+	t.Run("Followers", testFollowersInsertWhitelist)
 	t.Run("Posts", testPostsInsert)
 	t.Run("Posts", testPostsInsertWhitelist)
 	t.Run("SchemaMigrations", testSchemaMigrationsInsert)
@@ -101,6 +114,7 @@ func TestInsert(t *testing.T) {
 
 func TestReload(t *testing.T) {
 	t.Run("Comments", testCommentsReload)
+	t.Run("Followers", testFollowersReload)
 	t.Run("Posts", testPostsReload)
 	t.Run("SchemaMigrations", testSchemaMigrationsReload)
 	t.Run("Users", testUsersReload)
@@ -108,6 +122,7 @@ func TestReload(t *testing.T) {
 
 func TestReloadAll(t *testing.T) {
 	t.Run("Comments", testCommentsReloadAll)
+	t.Run("Followers", testFollowersReloadAll)
 	t.Run("Posts", testPostsReloadAll)
 	t.Run("SchemaMigrations", testSchemaMigrationsReloadAll)
 	t.Run("Users", testUsersReloadAll)
@@ -115,6 +130,7 @@ func TestReloadAll(t *testing.T) {
 
 func TestSelect(t *testing.T) {
 	t.Run("Comments", testCommentsSelect)
+	t.Run("Followers", testFollowersSelect)
 	t.Run("Posts", testPostsSelect)
 	t.Run("SchemaMigrations", testSchemaMigrationsSelect)
 	t.Run("Users", testUsersSelect)
@@ -122,6 +138,7 @@ func TestSelect(t *testing.T) {
 
 func TestUpdate(t *testing.T) {
 	t.Run("Comments", testCommentsUpdate)
+	t.Run("Followers", testFollowersUpdate)
 	t.Run("Posts", testPostsUpdate)
 	t.Run("SchemaMigrations", testSchemaMigrationsUpdate)
 	t.Run("Users", testUsersUpdate)
@@ -129,6 +146,7 @@ func TestUpdate(t *testing.T) {
 
 func TestSliceUpdateAll(t *testing.T) {
 	t.Run("Comments", testCommentsSliceUpdateAll)
+	t.Run("Followers", testFollowersSliceUpdateAll)
 	t.Run("Posts", testPostsSliceUpdateAll)
 	t.Run("SchemaMigrations", testSchemaMigrationsSliceUpdateAll)
 	t.Run("Users", testUsersSliceUpdateAll)

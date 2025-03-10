@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
+	"github.com/saleh-ghazimoradi/Gophergram/config"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/repository/boiler_models"
 	"github.com/saleh-ghazimoradi/Gophergram/sLogger"
 	"github.com/volatiletech/sqlboiler/v4/boil"
@@ -10,6 +12,7 @@ import (
 
 type UserRepository interface {
 	Create(ctx context.Context, user *boiler_models.User) error
+	GetById(ctx context.Context, id int64) (*boiler_models.User, error)
 	WithTx(tx *sql.Tx) UserRepository
 }
 
@@ -21,11 +24,28 @@ type userRepository struct {
 
 func (u *userRepository) Create(ctx context.Context, user *boiler_models.User) error {
 	if err := user.Insert(ctx, exec(u.dbWrite, u.tx), boil.Infer()); err != nil {
-		sLogger.SLogger.Error("failed to insert the user", err)
+		sLogger.SLogger.Error("failed to insert the user", "err", err.Error())
 		return err
 	}
 
 	return nil
+}
+
+func (u *userRepository) GetById(ctx context.Context, id int64) (*boiler_models.User, error) {
+	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.Database.Timeout)
+	defer cancel()
+
+	user, err := boiler_models.FindUser(ctx, exec(u.dbRead, u.tx), id)
+	if err != nil {
+		sLogger.SLogger.Error("failed to retrieve the user", "id", id)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrsNotFound
+		default:
+			return nil, err
+		}
+	}
+	return user, err
 }
 
 func (u *userRepository) WithTx(tx *sql.Tx) UserRepository {
