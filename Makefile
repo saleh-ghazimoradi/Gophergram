@@ -19,7 +19,16 @@ dockerUp:
 dockerDown:
 	docker compose down
 
-http:
+vet:
+	go vet ./...
+
+fmt:
+	go fmt ./...
+
+http: vet fmt
 	go run . http
+
+seed:
+	go run . seed
 
 
