@@ -4,15 +4,19 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+
 	"github.com/saleh-ghazimoradi/Gophergram/config"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/repository/boiler_models"
+	"github.com/saleh-ghazimoradi/Gophergram/internal/service/service_models"
 	"github.com/saleh-ghazimoradi/Gophergram/sLogger"
 	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries"
 )
 
 type PostRepository interface {
 	Create(ctx context.Context, post *boiler_models.Post) error
 	GetById(ctx context.Context, id int64) (*boiler_models.Post, error)
+	GetUserFeed(ctx context.Context, userID int64) ([]*service_models.RawPostWithMetadata, error)
 	Update(ctx context.Context, post *boiler_models.Post) error
 	Delete(ctx context.Context, id int64) error
 	WithTX(tx *sql.Tx) PostRepository
@@ -50,6 +54,40 @@ func (p *postRepository) GetById(ctx context.Context, id int64) (*boiler_models.
 		}
 	}
 	return post, nil
+}
+
+func (p *postRepository) GetUserFeed(ctx context.Context, userID int64) ([]*service_models.RawPostWithMetadata, error) {
+	const getUserFeedQuery = `
+    SELECT 
+        p.id, 
+        p.user_id, 
+        p.title, 
+        p.content, 
+        p.created_at, 
+        p.version, 
+        p.tags, 
+        u.username, 
+        COUNT(c.id) AS comment_count
+    FROM posts p
+    LEFT JOIN comments c ON c.post_id = p.id
+    LEFT JOIN users u ON p.user_id = u.id
+    JOIN followers f ON f.follower_id = p.user_id OR p.user_id = $1
+    WHERE f.user_id = $2 OR p.user_id = $3
+    GROUP BY p.id, p.user_id, p.title, p.content, p.created_at, p.version, p.tags, u.username
+    ORDER BY p.created_at DESC;
+    `
+
+	var rows []*service_models.RawPostWithMetadata
+
+	err := queries.Raw(getUserFeedQuery, userID, userID, userID).Bind(ctx, p.dbRead, &rows)
+	if err != nil {
+		sLogger.SLogger.Error("failed to retrieve the posts: ", "err", err.Error())
+		return nil, err
+	}
+
+	sLogger.SLogger.Debug("Fetched rows:", "rows", rows)
+
+	return rows, nil
 }
 
 func (p *postRepository) Update(ctx context.Context, post *boiler_models.Post) error {

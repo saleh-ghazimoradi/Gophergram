@@ -15,6 +15,7 @@ import (
 type PostService interface {
 	Create(ctx context.Context, input *dto.Post) error
 	GetById(ctx context.Context, id int64) (*service_models.Post, error)
+	GetUserFeed(ctx context.Context, id int64) ([]*service_models.PostWithMetadata, error)
 	Update(ctx context.Context, input *dto.UpdatePost, post *service_models.Post) error
 	Delete(ctx context.Context, id int64) error
 }
@@ -55,6 +56,33 @@ func (p *postService) GetById(ctx context.Context, id int64) (*service_models.Po
 		UpdatedAt: boilerPost.UpdatedAt,
 		Version:   boilerPost.Version.Int,
 	}, nil
+}
+
+func (p *postService) GetUserFeed(ctx context.Context, id int64) ([]*service_models.PostWithMetadata, error) {
+
+	rawPosts, err := p.postRepository.GetUserFeed(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	var feed []*service_models.PostWithMetadata
+	for _, rawPost := range rawPosts {
+		feed = append(feed, &service_models.PostWithMetadata{
+			ID:        rawPost.ID,
+			UserID:    rawPost.UserID,
+			Title:     rawPost.Title,
+			Content:   rawPost.Content,
+			CreatedAt: rawPost.CreatedAt,
+			Version:   rawPost.Version,
+			Tags:      []string(rawPost.Tags), // Convert pq.StringArray to []string
+			User: service_models.Users{
+				Username: rawPost.Username,
+			},
+			CommentCount: rawPost.CommentCount,
+		})
+	}
+
+	return feed, nil
 }
 
 func (p *postService) Update(ctx context.Context, input *dto.UpdatePost, post *service_models.Post) error {
