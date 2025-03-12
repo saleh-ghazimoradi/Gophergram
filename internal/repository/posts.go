@@ -16,7 +16,7 @@ import (
 type PostRepository interface {
 	Create(ctx context.Context, post *boiler_models.Post) error
 	GetById(ctx context.Context, id int64) (*boiler_models.Post, error)
-	GetUserFeed(ctx context.Context, userID int64) ([]*service_models.RawPostWithMetadata, error)
+	GetUserFeed(ctx context.Context, userID int64, offset, limit int, search string) ([]*service_models.RawPostWithMetadata, error)
 	Update(ctx context.Context, post *boiler_models.Post) error
 	Delete(ctx context.Context, id int64) error
 	WithTX(tx *sql.Tx) PostRepository
@@ -56,7 +56,7 @@ func (p *postRepository) GetById(ctx context.Context, id int64) (*boiler_models.
 	return post, nil
 }
 
-func (p *postRepository) GetUserFeed(ctx context.Context, userID int64) ([]*service_models.RawPostWithMetadata, error) {
+func (p *postRepository) GetUserFeed(ctx context.Context, userID int64, offset, limit int, search string) ([]*service_models.RawPostWithMetadata, error) {
 	const getUserFeedQuery = `
     SELECT 
         p.id, 
@@ -72,14 +72,18 @@ func (p *postRepository) GetUserFeed(ctx context.Context, userID int64) ([]*serv
     LEFT JOIN comments c ON c.post_id = p.id
     LEFT JOIN users u ON p.user_id = u.id
     JOIN followers f ON f.follower_id = p.user_id OR p.user_id = $1
-    WHERE f.user_id = $2 OR p.user_id = $3
+    WHERE (f.user_id = $2 OR p.user_id = $3)
+    AND (p.title ILIKE $4 OR p.content ILIKE $4 OR p.tags::text ILIKE $4)
     GROUP BY p.id, p.user_id, p.title, p.content, p.created_at, p.version, p.tags, u.username
-    ORDER BY p.created_at DESC;
+    ORDER BY p.created_at DESC
+    LIMIT $5 OFFSET $6;
     `
 
 	var rows []*service_models.RawPostWithMetadata
 
-	err := queries.Raw(getUserFeedQuery, userID, userID, userID).Bind(ctx, p.dbRead, &rows)
+	searchTerm := "%" + search + "%"
+
+	err := queries.Raw(getUserFeedQuery, userID, userID, userID, searchTerm, limit, offset).Bind(ctx, p.dbRead, &rows)
 	if err != nil {
 		sLogger.SLogger.Error("failed to retrieve the posts: ", "err", err.Error())
 		return nil, err

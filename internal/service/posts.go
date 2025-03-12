@@ -15,7 +15,7 @@ import (
 type PostService interface {
 	Create(ctx context.Context, input *dto.Post) error
 	GetById(ctx context.Context, id int64) (*service_models.Post, error)
-	GetUserFeed(ctx context.Context, id int64) ([]*service_models.PostWithMetadata, error)
+	GetUserFeed(ctx context.Context, id int64, offset, limit int, search string) ([]*service_models.PostWithMetadata, error)
 	Update(ctx context.Context, input *dto.UpdatePost, post *service_models.Post) error
 	Delete(ctx context.Context, id int64) error
 }
@@ -58,13 +58,14 @@ func (p *postService) GetById(ctx context.Context, id int64) (*service_models.Po
 	}, nil
 }
 
-func (p *postService) GetUserFeed(ctx context.Context, id int64) ([]*service_models.PostWithMetadata, error) {
+func (p *postService) GetUserFeed(ctx context.Context, id int64, offset, limit int, search string) ([]*service_models.PostWithMetadata, error) {
 
-	rawPosts, err := p.postRepository.GetUserFeed(ctx, id)
+	rawPosts, err := p.postRepository.GetUserFeed(ctx, id, offset, limit, search)
 	if err != nil {
 		return nil, err
 	}
 
+	// Map raw data to the custom model
 	var feed []*service_models.PostWithMetadata
 	for _, rawPost := range rawPosts {
 		feed = append(feed, &service_models.PostWithMetadata{
