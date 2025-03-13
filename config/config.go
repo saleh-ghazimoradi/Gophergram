@@ -9,8 +9,9 @@ import (
 var AppConfig *Config
 
 type Config struct {
-	ServerConfig ServerConfig
-	Database     Database
+	ServerConfig   ServerConfig
+	Database       Database
+	Authentication Authentication
 }
 
 type Database struct {
@@ -30,6 +31,10 @@ type ServerConfig struct {
 	Port    string `env:"SERVER_PORT"`
 	Version string `env:"SERVER_VERSION"`
 	Env     string `env:"SERVER_ENV"`
+}
+
+type Authentication struct {
+	Secret string `env:"AUTHENTICATION_SECRET"`
 }
 
 func LoadConfig() error {

@@ -26,8 +26,9 @@ type User struct {
 	ID        int64     `boil:"id" json:"id" toml:"id" yaml:"id"`
 	Email     string    `boil:"email" json:"email" toml:"email" yaml:"email"`
 	Username  string    `boil:"username" json:"username" toml:"username" yaml:"username"`
-	Password  []byte    `boil:"password" json:"password" toml:"password" yaml:"password"`
+	Password  string    `boil:"password" json:"password" toml:"password" yaml:"password"`
 	CreatedAt time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	IsActive  bool      `boil:"is_active" json:"is_active" toml:"is_active" yaml:"is_active"`
 
 	R *userR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L userL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -39,12 +40,14 @@ var UserColumns = struct {
 	Username  string
 	Password  string
 	CreatedAt string
+	IsActive  string
 }{
 	ID:        "id",
 	Email:     "email",
 	Username:  "username",
 	Password:  "password",
 	CreatedAt: "created_at",
+	IsActive:  "is_active",
 }
 
 var UserTableColumns = struct {
@@ -53,37 +56,32 @@ var UserTableColumns = struct {
 	Username  string
 	Password  string
 	CreatedAt string
+	IsActive  string
 }{
 	ID:        "users.id",
 	Email:     "users.email",
 	Username:  "users.username",
 	Password:  "users.password",
 	CreatedAt: "users.created_at",
+	IsActive:  "users.is_active",
 }
 
 // Generated where
-
-type whereHelper__byte struct{ field string }
-
-func (w whereHelper__byte) EQ(x []byte) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.EQ, x) }
-func (w whereHelper__byte) NEQ(x []byte) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.NEQ, x) }
-func (w whereHelper__byte) LT(x []byte) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.LT, x) }
-func (w whereHelper__byte) LTE(x []byte) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.LTE, x) }
-func (w whereHelper__byte) GT(x []byte) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.GT, x) }
-func (w whereHelper__byte) GTE(x []byte) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.GTE, x) }
 
 var UserWhere = struct {
 	ID        whereHelperint64
 	Email     whereHelperstring
 	Username  whereHelperstring
-	Password  whereHelper__byte
+	Password  whereHelperstring
 	CreatedAt whereHelpertime_Time
+	IsActive  whereHelperbool
 }{
 	ID:        whereHelperint64{field: "\"users\".\"id\""},
 	Email:     whereHelperstring{field: "\"users\".\"email\""},
 	Username:  whereHelperstring{field: "\"users\".\"username\""},
-	Password:  whereHelper__byte{field: "\"users\".\"password\""},
+	Password:  whereHelperstring{field: "\"users\".\"password\""},
 	CreatedAt: whereHelpertime_Time{field: "\"users\".\"created_at\""},
+	IsActive:  whereHelperbool{field: "\"users\".\"is_active\""},
 }
 
 // UserRels is where relationship names are stored.
@@ -144,9 +142,9 @@ func (r *userR) GetPosts() PostSlice {
 type userL struct{}
 
 var (
-	userAllColumns            = []string{"id", "email", "username", "password", "created_at"}
+	userAllColumns            = []string{"id", "email", "username", "password", "created_at", "is_active"}
 	userColumnsWithoutDefault = []string{"email", "username", "password"}
-	userColumnsWithDefault    = []string{"id", "created_at"}
+	userColumnsWithDefault    = []string{"id", "created_at", "is_active"}
 	userPrimaryKeyColumns     = []string{"id"}
 	userGeneratedColumns      = []string{}
 )

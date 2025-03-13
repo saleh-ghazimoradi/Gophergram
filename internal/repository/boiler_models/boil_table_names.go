@@ -8,11 +8,13 @@ var TableNames = struct {
 	Followers        string
 	Posts            string
 	SchemaMigrations string
+	UserInvitations  string
 	Users            string
 }{
 	Comments:         "comments",
 	Followers:        "followers",
 	Posts:            "posts",
 	SchemaMigrations: "schema_migrations",
+	UserInvitations:  "user_invitations",
 	Users:            "users",
 }

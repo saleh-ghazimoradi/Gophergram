@@ -21,6 +21,30 @@ type UserHandler struct {
 	followerService service.FollowService
 }
 
+func (u *UserHandler) RegisterUser(ctx *fiber.Ctx) error {
+	var payload dto.RegisterUser
+	if err := ctx.BodyParser(&payload); err != nil {
+		return helper.BadRequest(ctx, err)
+	}
+
+	if err := helper.Validator.Struct(payload); err != nil {
+		return helper.BadRequest(ctx, err)
+	}
+
+	if err := u.userService.Create(ctx.Context(), &payload); err != nil {
+		switch err {
+		case repository.ErrDuplicateEmail:
+			return helper.BadRequest(ctx, err)
+		case repository.ErrDuplicateUsername:
+			return helper.BadRequest(ctx, err)
+		default:
+			return helper.InternalServerError(ctx, err)
+		}
+	}
+
+	return helper.SuccessResponse(ctx, fiber.StatusCreated, "success", nil)
+}
+
 func (u *UserHandler) GetUserHandler(ctx *fiber.Ctx) error {
 	user := u.GetUserFromContext(ctx)
 	return helper.SuccessResponse(ctx, fiber.StatusOK, "Success", user)

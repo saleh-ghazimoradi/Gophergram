@@ -16,6 +16,7 @@ func TestParent(t *testing.T) {
 	t.Run("Followers", testFollowers)
 	t.Run("Posts", testPosts)
 	t.Run("SchemaMigrations", testSchemaMigrations)
+	t.Run("UserInvitations", testUserInvitations)
 	t.Run("Users", testUsers)
 }
 
@@ -24,6 +25,7 @@ func TestDelete(t *testing.T) {
 	t.Run("Followers", testFollowersDelete)
 	t.Run("Posts", testPostsDelete)
 	t.Run("SchemaMigrations", testSchemaMigrationsDelete)
+	t.Run("UserInvitations", testUserInvitationsDelete)
 	t.Run("Users", testUsersDelete)
 }
 
@@ -32,6 +34,7 @@ func TestQueryDeleteAll(t *testing.T) {
 	t.Run("Followers", testFollowersQueryDeleteAll)
 	t.Run("Posts", testPostsQueryDeleteAll)
 	t.Run("SchemaMigrations", testSchemaMigrationsQueryDeleteAll)
+	t.Run("UserInvitations", testUserInvitationsQueryDeleteAll)
 	t.Run("Users", testUsersQueryDeleteAll)
 }
 
@@ -40,6 +43,7 @@ func TestSliceDeleteAll(t *testing.T) {
 	t.Run("Followers", testFollowersSliceDeleteAll)
 	t.Run("Posts", testPostsSliceDeleteAll)
 	t.Run("SchemaMigrations", testSchemaMigrationsSliceDeleteAll)
+	t.Run("UserInvitations", testUserInvitationsSliceDeleteAll)
 	t.Run("Users", testUsersSliceDeleteAll)
 }
 
@@ -48,6 +52,7 @@ func TestExists(t *testing.T) {
 	t.Run("Followers", testFollowersExists)
 	t.Run("Posts", testPostsExists)
 	t.Run("SchemaMigrations", testSchemaMigrationsExists)
+	t.Run("UserInvitations", testUserInvitationsExists)
 	t.Run("Users", testUsersExists)
 }
 
@@ -56,6 +61,7 @@ func TestFind(t *testing.T) {
 	t.Run("Followers", testFollowersFind)
 	t.Run("Posts", testPostsFind)
 	t.Run("SchemaMigrations", testSchemaMigrationsFind)
+	t.Run("UserInvitations", testUserInvitationsFind)
 	t.Run("Users", testUsersFind)
 }
 
@@ -64,6 +70,7 @@ func TestBind(t *testing.T) {
 	t.Run("Followers", testFollowersBind)
 	t.Run("Posts", testPostsBind)
 	t.Run("SchemaMigrations", testSchemaMigrationsBind)
+	t.Run("UserInvitations", testUserInvitationsBind)
 	t.Run("Users", testUsersBind)
 }
 
@@ -72,6 +79,7 @@ func TestOne(t *testing.T) {
 	t.Run("Followers", testFollowersOne)
 	t.Run("Posts", testPostsOne)
 	t.Run("SchemaMigrations", testSchemaMigrationsOne)
+	t.Run("UserInvitations", testUserInvitationsOne)
 	t.Run("Users", testUsersOne)
 }
 
@@ -80,6 +88,7 @@ func TestAll(t *testing.T) {
 	t.Run("Followers", testFollowersAll)
 	t.Run("Posts", testPostsAll)
 	t.Run("SchemaMigrations", testSchemaMigrationsAll)
+	t.Run("UserInvitations", testUserInvitationsAll)
 	t.Run("Users", testUsersAll)
 }
 
@@ -88,6 +97,7 @@ func TestCount(t *testing.T) {
 	t.Run("Followers", testFollowersCount)
 	t.Run("Posts", testPostsCount)
 	t.Run("SchemaMigrations", testSchemaMigrationsCount)
+	t.Run("UserInvitations", testUserInvitationsCount)
 	t.Run("Users", testUsersCount)
 }
 
@@ -96,6 +106,7 @@ func TestHooks(t *testing.T) {
 	t.Run("Followers", testFollowersHooks)
 	t.Run("Posts", testPostsHooks)
 	t.Run("SchemaMigrations", testSchemaMigrationsHooks)
+	t.Run("UserInvitations", testUserInvitationsHooks)
 	t.Run("Users", testUsersHooks)
 }
 
@@ -108,6 +119,8 @@ func TestInsert(t *testing.T) {
 	t.Run("Posts", testPostsInsertWhitelist)
 	t.Run("SchemaMigrations", testSchemaMigrationsInsert)
 	t.Run("SchemaMigrations", testSchemaMigrationsInsertWhitelist)
+	t.Run("UserInvitations", testUserInvitationsInsert)
+	t.Run("UserInvitations", testUserInvitationsInsertWhitelist)
 	t.Run("Users", testUsersInsert)
 	t.Run("Users", testUsersInsertWhitelist)
 }
@@ -117,6 +130,7 @@ func TestReload(t *testing.T) {
 	t.Run("Followers", testFollowersReload)
 	t.Run("Posts", testPostsReload)
 	t.Run("SchemaMigrations", testSchemaMigrationsReload)
+	t.Run("UserInvitations", testUserInvitationsReload)
 	t.Run("Users", testUsersReload)
 }
 
@@ -125,6 +139,7 @@ func TestReloadAll(t *testing.T) {
 	t.Run("Followers", testFollowersReloadAll)
 	t.Run("Posts", testPostsReloadAll)
 	t.Run("SchemaMigrations", testSchemaMigrationsReloadAll)
+	t.Run("UserInvitations", testUserInvitationsReloadAll)
 	t.Run("Users", testUsersReloadAll)
 }
 
@@ -133,6 +148,7 @@ func TestSelect(t *testing.T) {
 	t.Run("Followers", testFollowersSelect)
 	t.Run("Posts", testPostsSelect)
 	t.Run("SchemaMigrations", testSchemaMigrationsSelect)
+	t.Run("UserInvitations", testUserInvitationsSelect)
 	t.Run("Users", testUsersSelect)
 }
 
@@ -141,6 +157,7 @@ func TestUpdate(t *testing.T) {
 	t.Run("Followers", testFollowersUpdate)
 	t.Run("Posts", testPostsUpdate)
 	t.Run("SchemaMigrations", testSchemaMigrationsUpdate)
+	t.Run("UserInvitations", testUserInvitationsUpdate)
 	t.Run("Users", testUsersUpdate)
 }
 
@@ -149,5 +166,6 @@ func TestSliceUpdateAll(t *testing.T) {
 	t.Run("Followers", testFollowersSliceUpdateAll)
 	t.Run("Posts", testPostsSliceUpdateAll)
 	t.Run("SchemaMigrations", testSchemaMigrationsSliceUpdateAll)
+	t.Run("UserInvitations", testUserInvitationsSliceUpdateAll)
 	t.Run("Users", testUsersSliceUpdateAll)
 }

@@ -13,6 +13,7 @@ import (
 type UserRepository interface {
 	Create(ctx context.Context, user *boiler_models.User) error
 	GetById(ctx context.Context, id int64) (*boiler_models.User, error)
+	CreateAndInvite(ctx context.Context, user *boiler_models.User) error
 	WithTx(tx *sql.Tx) UserRepository
 }
 
@@ -25,7 +26,14 @@ type userRepository struct {
 func (u *userRepository) Create(ctx context.Context, user *boiler_models.User) error {
 	if err := user.Insert(ctx, exec(u.dbWrite, u.tx), boil.Infer()); err != nil {
 		sLogger.SLogger.Error("failed to insert the user", "err", err.Error())
-		return err
+		switch {
+		case err.Error() == `pq: duplicate key value violates unique constraint "users_email_key"`:
+			return ErrDuplicateEmail
+		case err.Error() == `pq: duplicate key value violates unique constraint "users_username_key"`:
+			return ErrDuplicateUsername
+		default:
+			return err
+		}
 	}
 
 	return nil
@@ -46,6 +54,14 @@ func (u *userRepository) GetById(ctx context.Context, id int64) (*boiler_models.
 		}
 	}
 	return user, err
+}
+
+func (u *userRepository) CreateAndInvite(ctx context.Context, user *boiler_models.User) error {
+	if err := user.Insert(ctx, exec(u.dbWrite, u.tx), boil.Infer()); err != nil {
+		sLogger.SLogger.Error("failed to insert the user", "err", err.Error())
+		return err
+	}
+	return nil
 }
 
 func (u *userRepository) WithTx(tx *sql.Tx) UserRepository {

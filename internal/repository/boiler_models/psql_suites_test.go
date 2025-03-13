@@ -14,5 +14,7 @@ func TestUpsert(t *testing.T) {
 
 	t.Run("SchemaMigrations", testSchemaMigrationsUpsert)
 
+	t.Run("UserInvitations", testUserInvitationsUpsert)
+
 	t.Run("Users", testUsersUpsert)
 }
