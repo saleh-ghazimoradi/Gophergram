@@ -8,12 +8,15 @@ import (
 	"github.com/saleh-ghazimoradi/Gophergram/internal/repository/boiler_models"
 	"github.com/saleh-ghazimoradi/Gophergram/sLogger"
 	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+	"time"
 )
 
 type UserRepository interface {
 	Create(ctx context.Context, user *boiler_models.User) error
 	GetById(ctx context.Context, id int64) (*boiler_models.User, error)
 	CreateAndInvite(ctx context.Context, user *boiler_models.User) error
+	GetUserFromInvitation(ctx context.Context, token string) (*boiler_models.User, error)
 	WithTx(tx *sql.Tx) UserRepository
 }
 
@@ -62,6 +65,28 @@ func (u *userRepository) CreateAndInvite(ctx context.Context, user *boiler_model
 		return err
 	}
 	return nil
+}
+
+func (u *userRepository) GetUserFromInvitation(ctx context.Context, token string) (*boiler_models.User, error) {
+	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.Database.Timeout)
+	defer cancel()
+
+	user, err := boiler_models.Users(
+		qm.InnerJoin("user_invitations ui ON users.id = ui.user_id"),
+		qm.Where("ui.token = ?", token),
+		qm.And("ui.expiry > ?", time.Now()),
+	).One(ctx, exec(u.dbRead, u.tx))
+
+	if err != nil {
+		sLogger.SLogger.Error("failed to retrieve the user", "err", err.Error())
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrsNotFound
+		default:
+			return nil, err
+		}
+	}
+	return user, nil
 }
 
 func (u *userRepository) WithTx(tx *sql.Tx) UserRepository {

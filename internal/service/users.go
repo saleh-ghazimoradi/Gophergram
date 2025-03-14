@@ -12,11 +12,14 @@ import (
 	"github.com/saleh-ghazimoradi/Gophergram/internal/repository/boiler_models"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/service/service_models"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/transaction"
+	"time"
 )
 
 type UserService interface {
 	Create(ctx context.Context, input *dto.RegisterUser) error
 	GetById(ctx context.Context, id int64) (*service_models.Users, error)
+	GetUserFromInvitation(ctx context.Context, token string) (*service_models.Users, error)
+	Activate(ctx context.Context, token string) error
 }
 
 type userService struct {
@@ -50,6 +53,7 @@ func (u *userService) Create(ctx context.Context, input *dto.RegisterUser) error
 		if err := u.invitationRepository.CreateUserInvitation(ctx, &boiler_models.UserInvitation{
 			Token:  hashToken,
 			UserID: boilerUser.ID,
+			Expiry: time.Now().Add(24 * time.Hour),
 		}); err != nil {
 		}
 
@@ -69,6 +73,48 @@ func (u *userService) GetById(ctx context.Context, id int64) (*service_models.Us
 		Email:     boilerUser.Email,
 		CreatedAt: boilerUser.CreatedAt,
 	}, nil
+}
+
+func (u *userService) GetUserFromInvitation(ctx context.Context, token string) (*service_models.Users, error) {
+	hash := sha256.Sum256([]byte(token))
+	hashToken := hex.EncodeToString(hash[:])
+
+	boilerUser, err := u.userRepository.GetUserFromInvitation(ctx, hashToken)
+	if err != nil {
+		return nil, err
+	}
+
+	return &service_models.Users{
+		ID:        boilerUser.ID,
+		Username:  boilerUser.Username,
+		Email:     boilerUser.Email,
+		CreatedAt: boilerUser.CreatedAt,
+		IsActive:  boilerUser.IsActive,
+		Token:     hashToken,
+	}, nil
+}
+
+func (u *userService) Activate(ctx context.Context, token string) error {
+	return u.transaction.WithTx(ctx, func(tx *sql.Tx) error {
+		user, err := u.userRepository.GetUserFromInvitation(ctx, token)
+		if err != nil {
+			return err
+		}
+		if user == nil {
+			return sql.ErrNoRows
+		}
+
+		user.IsActive = true
+		if err = u.invitationRepository.UpdateUserInvitation(ctx, user); err != nil {
+			return err
+		}
+
+		if err = u.invitationRepository.DeleteUserInvitation(ctx, user.ID); err != nil {
+			return err
+		}
+
+		return nil
+	})
 }
 
 func NewUserService(userRepository repository.UserRepository, invitationRepository repository.InvitationRepository, authentication helper.Auth, transaction transaction.Transaction) UserService {

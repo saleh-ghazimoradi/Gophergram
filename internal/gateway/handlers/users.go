@@ -45,6 +45,21 @@ func (u *UserHandler) RegisterUser(ctx *fiber.Ctx) error {
 	return helper.SuccessResponse(ctx, fiber.StatusCreated, "success", nil)
 }
 
+func (u *UserHandler) ActivateUserHandler(ctx *fiber.Ctx) error {
+	token := ctx.Params("token")
+
+	if err := u.userService.Activate(ctx.Context(), token); err != nil {
+		switch err {
+		case repository.ErrsNotFound:
+			return helper.NotFound(ctx, err)
+		default:
+			return helper.InternalServerError(ctx, err)
+		}
+	}
+
+	return helper.SuccessResponse(ctx, fiber.StatusNoContent, "success", nil)
+}
+
 func (u *UserHandler) GetUserHandler(ctx *fiber.Ctx) error {
 	user := u.GetUserFromContext(ctx)
 	return helper.SuccessResponse(ctx, fiber.StatusOK, "Success", user)

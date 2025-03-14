@@ -568,7 +568,7 @@ func testUserInvitationsSelect(t *testing.T) {
 }
 
 var (
-	userInvitationDBTypes = map[string]string{`Token`: `text`, `UserID`: `bigint`, `CreatedAt`: `timestamp with time zone`}
+	userInvitationDBTypes = map[string]string{`Token`: `text`, `UserID`: `bigint`, `Expiry`: `timestamp with time zone`}
 	_                     = bytes.MinRead
 )
 

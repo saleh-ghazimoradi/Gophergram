@@ -12,6 +12,7 @@ func userRoutes(app *fiber.App, userHandler *handlers.UserHandler, feedHandler *
 	v1.Post("/authentication/token", nil)
 
 	// private routes
+	v1.Put("/users/activate/:token", userHandler.ActivateUserHandler)
 	v1.Get("/users/feed", feedHandler.GetUserFeedHandler)
 	v1.Get("/users/:id", userHandler.UsersContextMiddleware, userHandler.GetUserHandler)
 	v1.Put("/users/:id/follow", userHandler.UsersContextMiddleware, userHandler.FollowUserHandler)

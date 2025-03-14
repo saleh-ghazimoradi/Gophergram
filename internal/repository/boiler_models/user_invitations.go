@@ -23,44 +23,44 @@ import (
 
 // UserInvitation is an object representing the database table.
 type UserInvitation struct {
-	Token     string    `boil:"token" json:"token" toml:"token" yaml:"token"`
-	UserID    int64     `boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
-	CreatedAt time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	Token  string    `boil:"token" json:"token" toml:"token" yaml:"token"`
+	UserID int64     `boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
+	Expiry time.Time `boil:"expiry" json:"expiry" toml:"expiry" yaml:"expiry"`
 
 	R *userInvitationR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L userInvitationL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var UserInvitationColumns = struct {
-	Token     string
-	UserID    string
-	CreatedAt string
+	Token  string
+	UserID string
+	Expiry string
 }{
-	Token:     "token",
-	UserID:    "user_id",
-	CreatedAt: "created_at",
+	Token:  "token",
+	UserID: "user_id",
+	Expiry: "expiry",
 }
 
 var UserInvitationTableColumns = struct {
-	Token     string
-	UserID    string
-	CreatedAt string
+	Token  string
+	UserID string
+	Expiry string
 }{
-	Token:     "user_invitations.token",
-	UserID:    "user_invitations.user_id",
-	CreatedAt: "user_invitations.created_at",
+	Token:  "user_invitations.token",
+	UserID: "user_invitations.user_id",
+	Expiry: "user_invitations.expiry",
 }
 
 // Generated where
 
 var UserInvitationWhere = struct {
-	Token     whereHelperstring
-	UserID    whereHelperint64
-	CreatedAt whereHelpertime_Time
+	Token  whereHelperstring
+	UserID whereHelperint64
+	Expiry whereHelpertime_Time
 }{
-	Token:     whereHelperstring{field: "\"user_invitations\".\"token\""},
-	UserID:    whereHelperint64{field: "\"user_invitations\".\"user_id\""},
-	CreatedAt: whereHelpertime_Time{field: "\"user_invitations\".\"created_at\""},
+	Token:  whereHelperstring{field: "\"user_invitations\".\"token\""},
+	UserID: whereHelperint64{field: "\"user_invitations\".\"user_id\""},
+	Expiry: whereHelpertime_Time{field: "\"user_invitations\".\"expiry\""},
 }
 
 // UserInvitationRels is where relationship names are stored.
@@ -80,9 +80,9 @@ func (*userInvitationR) NewStruct() *userInvitationR {
 type userInvitationL struct{}
 
 var (
-	userInvitationAllColumns            = []string{"token", "user_id", "created_at"}
-	userInvitationColumnsWithoutDefault = []string{"token", "user_id"}
-	userInvitationColumnsWithDefault    = []string{"created_at"}
+	userInvitationAllColumns            = []string{"token", "user_id", "expiry"}
+	userInvitationColumnsWithoutDefault = []string{"token", "user_id", "expiry"}
+	userInvitationColumnsWithDefault    = []string{}
 	userInvitationPrimaryKeyColumns     = []string{"token"}
 	userInvitationGeneratedColumns      = []string{}
 )
@@ -471,13 +471,6 @@ func (o *UserInvitation) Insert(ctx context.Context, exec boil.ContextExecutor, 
 	}
 
 	var err error
-	if !boil.TimestampsAreSkipped(ctx) {
-		currTime := time.Now().In(boil.GetLocation())
-
-		if o.CreatedAt.IsZero() {
-			o.CreatedAt = currTime
-		}
-	}
 
 	if err := o.doBeforeInsertHooks(ctx, exec); err != nil {
 		return err
@@ -703,13 +696,6 @@ func (o *UserInvitation) UpsertG(ctx context.Context, updateOnConflict bool, con
 func (o *UserInvitation) Upsert(ctx context.Context, exec boil.ContextExecutor, updateOnConflict bool, conflictColumns []string, updateColumns, insertColumns boil.Columns, opts ...UpsertOptionFunc) error {
 	if o == nil {
 		return errors.New("boiler_models: no user_invitations provided for upsert")
-	}
-	if !boil.TimestampsAreSkipped(ctx) {
-		currTime := time.Now().In(boil.GetLocation())
-
-		if o.CreatedAt.IsZero() {
-			o.CreatedAt = currTime
-		}
 	}
 
 	if err := o.doBeforeUpsertHooks(ctx, exec); err != nil {
