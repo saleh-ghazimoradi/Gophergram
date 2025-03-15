@@ -5,13 +5,16 @@ import (
 	"crypto/sha256"
 	"database/sql"
 	"encoding/hex"
+	"fmt"
 	"github.com/google/uuid"
+	"github.com/saleh-ghazimoradi/Gophergram/config"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/gateway/dto"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/gateway/helper"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/repository"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/repository/boiler_models"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/service/service_models"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/transaction"
+	"github.com/saleh-ghazimoradi/Gophergram/sLogger"
 	"time"
 )
 
@@ -27,6 +30,7 @@ type userService struct {
 	invitationRepository repository.InvitationRepository
 	authentication       helper.Auth
 	transaction          transaction.Transaction
+	mailer               Mailer
 }
 
 func (u *userService) Create(ctx context.Context, input *dto.RegisterUser) error {
@@ -50,11 +54,36 @@ func (u *userService) Create(ctx context.Context, input *dto.RegisterUser) error
 		hash := sha256.Sum256([]byte(plainToken))
 		hashToken := hex.EncodeToString(hash[:])
 
-		if err := u.invitationRepository.CreateUserInvitation(ctx, &boiler_models.UserInvitation{
+		if err = u.invitationRepository.CreateUserInvitation(ctx, &boiler_models.UserInvitation{
 			Token:  hashToken,
 			UserID: boilerUser.ID,
 			Expiry: time.Now().Add(24 * time.Hour),
 		}); err != nil {
+			return err
+		}
+
+		activationURL := fmt.Sprintf("%s/confirm/%s", config.AppConfig.Mail.FrontendURL, plainToken)
+		isProdEnv := config.AppConfig.ServerConfig.Env == "production"
+		vars := struct {
+			Username      string
+			ActivationURL string
+		}{
+			Username:      boilerUser.Username,
+			ActivationURL: activationURL,
+		}
+
+		_, err = u.mailer.Send(config.AppConfig.Mail.UserWelcomeTemplate, boilerUser.Username, boilerUser.Email, vars, !isProdEnv)
+		if err != nil {
+			sLogger.SLogger.Error("error sending welcome email", "error", err)
+
+			if err = u.userRepository.Delete(ctx, boilerUser.ID); err != nil {
+				sLogger.SLogger.Error("error deleting user", "error", err)
+				err = u.invitationRepository.DeleteUserInvitation(ctx, boilerUser.ID)
+				if err != nil {
+					sLogger.SLogger.Error("error deleting invitation", "error", err)
+					return err
+				}
+			}
 		}
 
 		return nil
@@ -72,6 +101,7 @@ func (u *userService) GetById(ctx context.Context, id int64) (*service_models.Us
 		Username:  boilerUser.Username,
 		Email:     boilerUser.Email,
 		CreatedAt: boilerUser.CreatedAt,
+		IsActive:  boilerUser.IsActive,
 	}, nil
 }
 
@@ -117,11 +147,12 @@ func (u *userService) Activate(ctx context.Context, token string) error {
 	})
 }
 
-func NewUserService(userRepository repository.UserRepository, invitationRepository repository.InvitationRepository, authentication helper.Auth, transaction transaction.Transaction) UserService {
+func NewUserService(userRepository repository.UserRepository, invitationRepository repository.InvitationRepository, authentication helper.Auth, transaction transaction.Transaction, mailer Mailer) UserService {
 	return &userService{
 		userRepository:       userRepository,
 		invitationRepository: invitationRepository,
 		authentication:       authentication,
 		transaction:          transaction,
+		mailer:               mailer,
 	}
 }

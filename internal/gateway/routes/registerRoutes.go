@@ -19,12 +19,13 @@ func RegisterRoutes(app *fiber.App, db *sql.DB) {
 	userRepository := repository.NewUserRepository(db, db)
 	followerRepository := repository.NewFollowerRepository(db, db)
 	invitationRepository := repository.NewInvitationRepository(db, db)
-
 	withTX := transaction.NewTransaction(db)
+
+	maileService := service.NewMailer(config.AppConfig.Mail.FromEmail, config.AppConfig.Mail.ApiKey)
 	postService := service.NewPostService(postRepository, withTX)
 	commentService := service.NewCommentsService(commentRepository)
 	authService := helper.NewAuth(config.AppConfig.Authentication.Secret)
-	userService := service.NewUserService(userRepository, invitationRepository, authService, withTX)
+	userService := service.NewUserService(userRepository, invitationRepository, authService, withTX, maileService)
 	followService := service.NewFollowService(followerRepository)
 
 	postHandler := handlers.NewPostHandler(postService, commentService)

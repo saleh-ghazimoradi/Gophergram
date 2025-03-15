@@ -12,6 +12,7 @@ type Config struct {
 	ServerConfig   ServerConfig
 	Database       Database
 	Authentication Authentication
+	Mail           Mail
 }
 
 type Database struct {
@@ -31,6 +32,16 @@ type ServerConfig struct {
 	Port    string `env:"SERVER_PORT"`
 	Version string `env:"SERVER_VERSION"`
 	Env     string `env:"SERVER_ENV"`
+}
+
+type Mail struct {
+	Exp                 time.Duration `env:"TOKEN_EXPIRATION,required"`
+	FromName            string        `env:"MAIL_FROM_NAME,required"`
+	MaxRetries          uint          `env:"MAIL_MAX_RETRIES,required"`
+	UserWelcomeTemplate string        `env:"TOKEN_USER_WELCOME_TEMPLATE,required"`
+	FromEmail           string        `env:"FROM_EMAIL,required"`
+	ApiKey              string        `env:"API_KEY,required"`
+	FrontendURL         string        `env:"FRONTEND_URL,required"`
 }
 
 type Authentication struct {

@@ -17,6 +17,7 @@ type UserRepository interface {
 	GetById(ctx context.Context, id int64) (*boiler_models.User, error)
 	CreateAndInvite(ctx context.Context, user *boiler_models.User) error
 	GetUserFromInvitation(ctx context.Context, token string) (*boiler_models.User, error)
+	Delete(ctx context.Context, id int64) error
 	WithTx(tx *sql.Tx) UserRepository
 }
 
@@ -87,6 +88,22 @@ func (u *userRepository) GetUserFromInvitation(ctx context.Context, token string
 		}
 	}
 	return user, nil
+}
+
+func (u *userRepository) Delete(ctx context.Context, id int64) error {
+	ctx, cancel := context.WithTimeout(ctx, config.AppConfig.Database.Timeout)
+	defer cancel()
+
+	_, err := boiler_models.Users(
+		boiler_models.UserWhere.ID.EQ(id),
+	).DeleteAll(ctx, exec(u.dbRead, u.tx))
+
+	if err != nil {
+		sLogger.SLogger.Error("failed to delete the user", "id", id)
+		return err
+	}
+
+	return nil
 }
 
 func (u *userRepository) WithTx(tx *sql.Tx) UserRepository {
