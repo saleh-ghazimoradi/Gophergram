@@ -31,7 +31,7 @@ func RegisterRoutes(app *fiber.App, db *sql.DB) {
 	postHandler := handlers.NewPostHandler(postService, commentService)
 	userHandler := handlers.NewUserHandler(userService, followService)
 	feedHandler := handlers.NewFeedHandler(postService)
-	HealthCheckRoute(app, health)
+	HealthCheckRoute(app, health, authService)
 	PostRoutes(app, postHandler)
 	userRoutes(app, userHandler, feedHandler)
 }

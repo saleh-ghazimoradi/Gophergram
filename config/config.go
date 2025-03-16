@@ -45,7 +45,9 @@ type Mail struct {
 }
 
 type Authentication struct {
-	Secret string `env:"AUTHENTICATION_SECRET"`
+	Secret   string `env:"AUTHENTICATION_SECRET"`
+	Password string `env:"AUTHENTICATION_PASSWORD"`
+	Username string `env:"AUTHENTICATION_USERNAME"`
 }
 
 func LoadConfig() error {
