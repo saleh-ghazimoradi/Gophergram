@@ -1,53 +1,34 @@
-ifneq (,$(wildcard ./app.env))
-	include app.env
-	export $(shell sed 's/=.*//' app.env)
-endif
+db_login:
+	psql ${DATABASE_URL}
 
-MIGRATE_PATH = ./scripts/migrations
-DATABASE_URL = ${DB_SOURCE}
+migrateCreate:
+	migrate create -ext sql -dir scripts/migrations -seq $(name)
 
-format:
-	@echo "Applying go fmt to the project"
-	go fmt ./...
+migrateUp:
+	migrate -database ${DATABASE_URL} -path scripts/migrations up
 
+migrateDown:
+	migrate -database ${DATABASE_URL} -path scripts/migrations down 1
+
+migrateDrop:
+	migrate -database ${DATABASE_URL} -path scripts/migrations drop
+
+dockerUp:
+	docker compose up -d
+
+dockerDown:
+	docker compose down
 
 vet:
-	@echo "Checking for errors with vet"
 	go vet ./...
 
-dockerup:
-	docker compose --env-file app.env up -d
+fmt:
+	go fmt ./...
 
-dockerdown:
-	docker compose --env-file app.env down
-
-migrate-create:
-	@echo "Creating migration files for ${name}..."
-	migrate create -seq -ext=.sql -dir=./scripts/migrations ${name}
-
-migrate-up:
-	@echo "Running up migrations..."
-	migrate -path ${MIGRATE_PATH} -database "${DATABASE_URL}" up
-
-migrate-down:
-	@echo "Rolling back migrations..."
-	@if [ -z "$(n)" ]; then \
-		migrate -path ${MIGRATE_PATH} -database "${DATABASE_URL}" down 1; \
-	else \
-		migrate -path ${MIGRATE_PATH} -database "${DATABASE_URL}" down $(n); \
-	fi
-
-
-migrate-drop:
-	@echo "Dropping all migrations..."
-	migrate -path ${MIGRATE_PATH} -database "${DATABASE_URL}" drop -f
-
-# Run the HTTP server
-http:
+http: vet fmt
 	go run . http
 
 seed:
 	go run . seed
 
-# Declare targets that are not files
-.PHONY: format vet dockerup dockerdown migrate-create migrate-up migrate-down migrate-drop http seed
+

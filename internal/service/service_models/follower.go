@@ -7,7 +7,3 @@ type Follower struct {
 	FollowerId int64     `json:"follower_id"`
 	CreatedAt  time.Time `json:"created_at"`
 }
-
-type FollowUser struct {
-	UserID int64 `json:"user_id"`
-}

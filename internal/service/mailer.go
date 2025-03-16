@@ -11,12 +11,12 @@ import (
 	"time"
 )
 
-//go:embed "template"
-var FS embed.FS
-
 type Mailer interface {
 	Send(templateFile, username, email string, data any, isSandbox bool) (int, error)
 }
+
+//go:embed "template"
+var FS embed.FS
 
 type mailService struct {
 	fromEmail string
@@ -28,7 +28,6 @@ func (m *mailService) Send(templateFile, username, email string, data any, isSan
 	from := mail.NewEmail(config.AppConfig.Mail.FromName, m.fromEmail)
 	to := mail.NewEmail(username, email)
 
-	// template parsing and building
 	tmpl, err := template.ParseFS(FS, "template/"+templateFile)
 	if err != nil {
 		return -1, err

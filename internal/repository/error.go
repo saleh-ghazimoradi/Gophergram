@@ -4,8 +4,7 @@ import "errors"
 
 var (
 	ErrsNotFound         = errors.New("resource not found")
-	ErrsConflict         = errors.New("resource already exists")
+	ErrConflict          = errors.New("resource already exists")
+	ErrDuplicateEmail    = errors.New("duplicate resource")
 	ErrDuplicateUsername = errors.New("duplicate username")
-	ErrDuplicateEmail    = errors.New("duplicate email")
-	ErrRateLimitExceeded = errors.New("rate limit exceeded")
 )

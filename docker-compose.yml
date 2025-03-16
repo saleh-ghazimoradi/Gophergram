@@ -1,25 +1,16 @@
 services:
   db:
     image: postgres:16.3
-    container_name: GopherGram
-    env_file:
-      - app.env
+    container_name: GopherGram2
+    restart: always
     environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
     volumes:
       - db-data:/var/lib/postgresql/data
     ports:
-      - "5415:5432"
-
-  redis:
-    image: redis:6.2-alpine
-    restart: unless-stopped
-    container_name: redis
-    ports:
-    - "6379:6379"
-    command: redis-server --save 60 1 --loglevel warning
+      - ${DATABASE_PORT}:5432
 
 volumes:
   db-data:

@@ -1,84 +1,36 @@
 package gateway
 
 import (
-	"context"
-	"errors"
-	"github.com/julienschmidt/httprouter"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/saleh-ghazimoradi/Gophergram/config"
-	"github.com/saleh-ghazimoradi/Gophergram/docs"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/gateway/routes"
-	"github.com/saleh-ghazimoradi/Gophergram/logger"
+	"github.com/saleh-ghazimoradi/Gophergram/sLogger"
 	"github.com/saleh-ghazimoradi/Gophergram/utils"
-	"net/http"
-	"os"
-	"os/signal"
-	"sync"
-	"syscall"
-	"time"
 )
 
-var wg sync.WaitGroup
-
 func Server() error {
-	docs.SwaggerInfo.Version = config.AppConfig.ServerConfig.Version
-	docs.SwaggerInfo.Host = config.AppConfig.ServerConfig.APIURL
+	app := fiber.New(fiber.Config{
+		BodyLimit: 1024 * 1024,
+	})
 
+	// Middlewares
+	app.Use(recover.New()) // Prevents crashes from panics
+	app.Use(logger.New())  // Logs incoming requests
+
+	// Register routes
 	db, err := utils.PostConnection()
 	if err != nil {
 		return err
 	}
+	routes.RegisterRoutes(app, db)
 
-	redis, err := utils.RedisConnection(config.AppConfig.Redis.Addr, config.AppConfig.Redis.PW, config.AppConfig.Redis.DB)
-	if err != nil {
-		logger.Logger.Error(err.Error())
+	sLogger.SLogger.Info("Starting server", "port", config.AppConfig.ServerConfig.Port)
+
+	if err := app.Listen(":3000"); err != nil {
+		sLogger.SLogger.Error("Failed to start server", "error", err)
 	}
-
-	router := httprouter.New()
-	routes.RegisterRoutes(router, db, redis)
-
-	srv := &http.Server{
-		Addr:         config.AppConfig.ServerConfig.Port,
-		Handler:      router,
-		ReadTimeout:  config.AppConfig.ServerConfig.ReadTimeout,
-		WriteTimeout: config.AppConfig.ServerConfig.WriteTimeout,
-		IdleTimeout:  config.AppConfig.ServerConfig.IdleTimeout,
-	}
-
-	shutdownError := make(chan error)
-	go func() {
-		quit := make(chan os.Signal, 1)
-		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-		s := <-quit
-
-		logger.Logger.Info("shutting down server", "signal", s.String())
-
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer cancel()
-
-		err := srv.Shutdown(ctx)
-		if err != nil {
-			shutdownError <- err
-		}
-
-		logger.Logger.Info("completing background tasks", "addr", srv.Addr)
-
-		wg.Wait()
-		shutdownError <- nil
-	}()
-
-	logger.Logger.Info("starting server", "addr", config.AppConfig.ServerConfig.Port, "env", config.AppConfig.ServerConfig.Env)
-
-	err = srv.ListenAndServe()
-	if !errors.Is(err, http.ErrServerClosed) {
-		return err
-	}
-
-	err = <-shutdownError
-	if err != nil {
-		return err
-	}
-
-	logger.Logger.Info("stopped server", "addr", srv.Addr)
 
 	return nil
 }

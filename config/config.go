@@ -1,9 +1,8 @@
 package config
 
 import (
-	"github.com/caarlos0/env"
-	"github.com/joho/godotenv"
-	"log"
+	"github.com/caarlos0/env/v11"
+	"github.com/saleh-ghazimoradi/Gophergram/sLogger"
 	"time"
 )
 
@@ -11,48 +10,28 @@ var AppConfig *Config
 
 type Config struct {
 	ServerConfig   ServerConfig
-	DBConfig       DBConfig
-	Context        Context
-	Pagination     Pagination
-	Mail           Mail
+	Database       Database
 	Authentication Authentication
-	Redis          Redis
-	Rate           Rate
+	Mail           Mail
+}
+
+type Database struct {
+	DatabaseHost     string        `env:"DATABASE_HOST,required"`
+	DatabasePort     string        `env:"DATABASE_PORT,required"`
+	DatabaseUser     string        `env:"DATABASE_USER,required"`
+	DatabasePassword string        `env:"DATABASE_PASSWORD,required"`
+	DatabaseName     string        `env:"DATABASE_NAME,required"`
+	DatabaseSSLMode  string        `env:"DATABASE_SSLMODE,required"`
+	MaxOpenConn      int           `env:"DB_MAX_OPEN_CONNECTIONS,required"`
+	MaxIdleConn      int           `env:"DB_MAX_IDLE_CONNECTIONS,required"`
+	MaxIdleTime      time.Duration `env:"DB_MAX_IDLE_TIME,required"`
+	Timeout          time.Duration `env:"DB_TIMEOUT,required"`
 }
 
 type ServerConfig struct {
-	Port         string        `env:"SERVER_PORT,required"`
-	Version      string        `env:"SERVER_VERSION,required"`
-	IdleTimeout  time.Duration `env:"SERVER_IDLE_TIMEOUT,required"`
-	ReadTimeout  time.Duration `env:"SERVER_READ_TIMEOUT,required"`
-	WriteTimeout time.Duration `env:"SERVER_WRITE_TIMEOUT,required"`
-	Env          string        `env:"SERVER_ENV,required"`
-	APIURL       string        `env:"SERVER_API_URL,required"`
-}
-
-type Context struct {
-	ContextTimeout time.Duration `env:"CONTEXT_TIME_OUT,required"`
-}
-
-type Authentication struct {
-	Username string        `env:"USERNAME,required"`
-	Password string        `env:"PASSWORD,required"`
-	Secret   string        `env:"SECRET,required"`
-	Exp      time.Duration `env:"EXP,required"`
-	Aud      string        `env:"AUD,required"`
-	Iss      string        `env:"ISS,required"`
-}
-
-type Rate struct {
-	Limit  int           `env:"RATE_LIMIT,required"`
-	Window time.Duration `env:"RATE_WINDOW,required"`
-}
-
-type Redis struct {
-	Addr    string `env:"REDIS_ADDR,required"`
-	PW      string `env:"REDIS_PASSWORD,required"`
-	DB      int    `env:"REDIS_DB,required"`
-	Enabled bool   `env:"REDIS_ENABLED,required"`
+	Port    string `env:"SERVER_PORT"`
+	Version string `env:"SERVER_VERSION"`
+	Env     string `env:"SERVER_ENV"`
 }
 
 type Mail struct {
@@ -65,95 +44,19 @@ type Mail struct {
 	FrontendURL         string        `env:"FRONTEND_URL,required"`
 }
 
-type DBConfig struct {
-	DBDriver     string        `env:"DB_DRIVER,required"`
-	DBSource     string        `env:"DB_SOURCE,required"`
-	DbHost       string        `env:"DB_HOST,required"`
-	DbPort       string        `env:"DB_PORT,required"`
-	DbUser       string        `env:"DB_USER,required"`
-	DbPassword   string        `env:"DB_PASSWORD,required"`
-	DbName       string        `env:"DB_NAME,required"`
-	DbSslMode    string        `env:"DB_SSLMODE,required"`
-	MaxOpenConns int           `env:"DB_MAX_OPEN_CONNECTIONS,required"`
-	MaxIdleConns int           `env:"DB_MAX_IDLE_CONNECTIONS,required"`
-	MaxIdleTime  time.Duration `env:"DB_MAX_IDLE_TIME,required"`
-	Timeout      time.Duration `env:"DB_TIMEOUT,required"`
+type Authentication struct {
+	Secret   string `env:"AUTHENTICATION_SECRET"`
+	Password string `env:"AUTHENTICATION_PASSWORD"`
+	Username string `env:"AUTHENTICATION_USERNAME"`
 }
 
-type Pagination struct {
-	Limit  int    `env:"LIMIT,required"`
-	Offset int    `env:"OFFSET,required"`
-	Sort   string `env:"SORT,required"`
-}
-
-func LoadingConfig() error {
-	if err := godotenv.Load("app.env"); err != nil {
-		log.Fatal("error loading app.env file")
-	}
-
+func LoadConfig() error {
 	config := &Config{}
 
 	if err := env.Parse(config); err != nil {
-		log.Fatal("error parsing config")
+		sLogger.SLogger.Error("error loading config", "error", err)
 	}
-
-	serverConfig := &ServerConfig{}
-
-	if err := env.Parse(serverConfig); err != nil {
-		log.Fatal("error parsing config")
-	}
-
-	config.ServerConfig = *serverConfig
-
-	dbConfig := &DBConfig{}
-	if err := env.Parse(dbConfig); err != nil {
-		log.Fatal("error parsing config")
-	}
-
-	contextConfig := &Context{}
-
-	if err := env.Parse(contextConfig); err != nil {
-		log.Fatal("error parsing config")
-	}
-
-	config.Context = *contextConfig
-
-	config.DBConfig = *dbConfig
-
-	paginationConfig := &Pagination{}
-
-	if err := env.Parse(paginationConfig); err != nil {
-		log.Fatal("error parsing pagination config")
-	}
-
-	config.Pagination = *paginationConfig
-
-	mailConfig := &Mail{}
-	if err := env.Parse(mailConfig); err != nil {
-		log.Fatal("error parsing token config")
-	}
-	config.Mail = *mailConfig
-
-	authConfig := &Authentication{}
-	if err := env.Parse(authConfig); err != nil {
-		log.Fatal("error parsing token config")
-	}
-	config.Authentication = *authConfig
-
-	redisConfig := &Redis{}
-	if err := env.Parse(redisConfig); err != nil {
-		log.Fatal("error parsing token config")
-	}
-	config.Redis = *redisConfig
-
-	rateConfig := &Rate{}
-	if err := env.Parse(rateConfig); err != nil {
-		log.Fatal("error parsing token config")
-	}
-
-	config.Rate = *rateConfig
 
 	AppConfig = config
-
 	return nil
 }

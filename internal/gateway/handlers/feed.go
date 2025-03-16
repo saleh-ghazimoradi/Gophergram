@@ -1,67 +1,41 @@
 package handlers
 
 import (
-	"context"
-	"fmt"
-	"github.com/saleh-ghazimoradi/Gophergram/config"
+	"github.com/gofiber/fiber/v2"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/gateway/helper"
-	"github.com/saleh-ghazimoradi/Gophergram/internal/gateway/json"
 	"github.com/saleh-ghazimoradi/Gophergram/internal/service"
-	"github.com/saleh-ghazimoradi/Gophergram/internal/service/service_models"
-	"net/http"
+	"strconv"
+)
+
+const (
+	defaultLimit  = "10"
+	defaultOffset = "0"
+	defaultSearch = ""
 )
 
 type FeedHandler struct {
 	postService service.PostService
 }
 
-// GetUserFeedHandler godoc
-//
-//	@Summary		Fetches the user feed
-//	@Description	Fetches the user feed
-//	@Tags			feed
-//	@Accept			json
-//	@Produce		json
-//	@Param			limit	query		int		false	"Limit"
-//	@Param			offset	query		int		false	"Offset"
-//	@Param			sort	query		string	false	"Sort"
-//	@Success		200		{object}	[]service_models.PostFeed
-//	@Failure		400		{object}	error
-//	@Failure		500		{object}	error
-//	@Security		ApiKeyAuth
-//	@Router			/v1/users/feed [get]
-func (f *FeedHandler) GetUserFeedHandler(w http.ResponseWriter, r *http.Request) {
-	p := service_models.PaginatedFeedQuery{
-		Limit:  config.AppConfig.Pagination.Limit,
-		Offset: config.AppConfig.Pagination.Offset,
-		Sort:   config.AppConfig.Pagination.Sort,
-	}
-
-	fmt.Printf("limit: %d, type: %T, offset: %d, type: %T\n", p.Limit, p.Limit, p.Offset, p.Offset)
-
-	fq, err := p.Parse(r)
+func (f *FeedHandler) GetUserFeedHandler(ctx *fiber.Ctx) error {
+	offset, err := strconv.Atoi(ctx.Query("offset", defaultOffset))
 	if err != nil {
-		helper.BadRequestResponse(w, r, err)
-		return
+		return helper.BadRequest(ctx, err)
 	}
 
-	if err = helper.Validate.Struct(fq); err != nil {
-		helper.BadRequestResponse(w, r, err)
-		return
-	}
-
-	//user := getUserFromContext(r)
-	//fmt.Println(user.ID)
-
-	feed, err := f.postService.GetUserFeed(context.Background(), int64(10), fq)
+	limit, err := strconv.Atoi(ctx.Query("limit", defaultLimit))
 	if err != nil {
-		helper.InternalServerError(w, r, err)
-		return
+		return helper.BadRequest(ctx, err)
 	}
 
-	if err = json.JSONResponse(w, http.StatusOK, feed); err != nil {
-		helper.InternalServerError(w, r, err)
+	search := ctx.Query("search", defaultSearch)
+
+	feed, err := f.postService.GetUserFeed(ctx.Context(), int64(4), offset, limit, search)
+	if err != nil {
+		return helper.InternalServerError(ctx, err)
 	}
+
+	return helper.SuccessResponse(ctx, fiber.StatusOK, "Success", feed)
 }
 
 func NewFeedHandler(postService service.PostService) *FeedHandler {
